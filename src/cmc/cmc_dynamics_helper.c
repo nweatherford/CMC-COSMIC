@@ -473,6 +473,7 @@ void make_threebodybinary(double P_3bb, long k1, long k2, long k3, long form_bin
 	double m1, m2, m3;
 //  double ms, mb;
 	double r1, r2, r3;
+	double vr3 = star[k3].vr, vt3 = star[k3].vt;
 	double cm_vel[4], v1_cmf[4], v2_cmf[4], v3_cmf[4];
 	double eta, Eb, ecc_max, ecc, r_p, semi_major;
 	double vs_cmf[4], vb_cmf[4], vs[4], vb[4], angle3, angle4;
@@ -663,7 +664,7 @@ void make_threebodybinary(double P_3bb, long k1, long k2, long k3, long form_bin
 		// destroy the two former single stars (which have now formed a binary)
 		// leave the remaining single star (properties have already been updated)
 		parafprintf(threebbfile, "%.16g %ld %ld %ld %ld %ld %ld %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %ld", TotalTime, k1, k2, k3, star[k1].id, star[k2].id, star[k3].id, m1*(units.m / clus.N_STAR / MSUN), m2*(units.m / clus.N_STAR / MSUN), m3*(units.m / clus.N_STAR / MSUN), ave_local_mass, n_local, sigma_local, eta, Eb, binary[star[knew].binind].e, binary[star[knew].binind].a * units.l / AU, r_p * units.l / AU, star_r[get_global_idx(knew)], r3, star[knew].vr, star[knew].vt, star[k3].vr, star[k3].vt, star_phi[get_global_idx(knew)], star_phi[get_global_idx(k3)], delta_PE, delta_KE, delta_E, delta_E_3bb, N3bbformed);
-		parafprintf(threebbfile, "%ld %g %g %g %g %g %g %ld %ld %ld %g %g %g %g %g %g\n", star[knew].id, r1, r2, star[k1].vr, star[k1].vt, star[k2].vr, star[k2].vt, star[k1].se_k, star[k2].se_k, star[k3].se_k, star[k1].rad * units.l / Rsun, star[k2].rad * units.l / Rsun, star[k3].rad * units.l / Rsun, star[k1].se_lum, star[k2].se_lum, star[k3].se_lum);
+		parafprintf(threebbfile, "%ld %g %g %g %g %g %g %g %g %ld %ld %ld %g %g %g %g %g %g\n", star[knew].id, r1, r2, star[k1].vr, star[k1].vt, star[k2].vr, star[k2].vt, vr3, vt3, star[k1].se_k, star[k2].se_k, star[k3].se_k, star[k1].rad * units.l / Rsun, star[k2].rad * units.l / Rsun, star[k3].rad * units.l / Rsun, star[k1].se_lum, star[k2].se_lum, star[k3].se_lum);
 		destroy_obj(k1);
 		destroy_obj(k2);
 	//	parafprintf(threebbfile, "KE_cmf_i=%g  eta=%g  Eb=%g\n", KE_cmf_i, eta, Eb);
