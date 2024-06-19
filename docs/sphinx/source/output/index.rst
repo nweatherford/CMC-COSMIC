@@ -719,11 +719,11 @@ This file contains information of three body binaries (triples).
 
 ==============================  =====================================================
 ``time``                         Time
-``k1``                           Stellar type of object `_1`
-``k2``                           Stellar type of object `_2`
-``k3``                           Stellar type of object `_3`
-``id1``                          ID of object `_1`
-``id2``                          ID of object `_2`
+``k1``                           Index of object `_1` in the cluster's radially-sorted list of objects
+``k2``                           Index of object `_2` in the cluster's radially-sorted list of object
+``k3``                           Index of object `_3` in the cluster's radially-sorted list of object
+``id1``                          ID of object `_1` (BEFORE encounter)
+``id2``                          ID of object `_2` (BEFORE encounter)
 ``id3``                          ID of object `_3`
 ``m1``                           Mass of object `_1`
 ``m2``                           Mass of object `_2`
@@ -736,12 +736,12 @@ This file contains information of three body binaries (triples).
 ``ecc``                          Eccentricty
 ``a``                            Semi-major axis [AU]
 ``r_peri``                       Pericenter distance [AU]
-``r(bin)``                       Radial distance of the binary
-``r(single)``                    Radial distance of the single object
+``r(bin)``                       Clustercentric distance of the binary
+``r(single)``                    Clustercentric distance of the single object (set equal to value BEFORE encounter)
 ``vr(bin)``                      Radial velocity of binary
 ``vt(bin)``                      Tangential velocity of binary
-``vr(single)``                   Radial velocity of single object
-``vt(single)``                   Tangential velocity of single object
+``vr(single)``                   Radial velocity of single object (AFTER encounter)
+``vt(single)``                   Tangential velocity of single object (AFTER encounter)
 ``phi(bin)``                     Potential energy of the binary
 ``phi(single)``                  Potential energy of the single object
 ``delta_PE``                     Change of the potential energy 
@@ -749,6 +749,24 @@ This file contains information of three body binaries (triples).
 ``delta_E(interaction)``         Change of the total energy per interaction
 ``delta_E(cumulative)``          Change of the total energy for all 3-body interactions         
 ``N_3bb``                        The number of triples formed
+``id(bin)``                      ID assigned to the binary
+``r1``                           Initial clustercentric distance of object `_1` (BEFORE encounter)
+``r2``                           Initial clustercentric distance of object `_2` (BEFORE encounter)
+``vr1``                          Initial radial velocity of object `_1` (BEFORE encounter)
+``vt1``                          Initial tangential velocity of object `_1` (BEFORE encounter)
+``vr2``                          Initial radial velocity of object `_2` (BEFORE encounter)
+``vt2``                          Initial tangential velocity of object `_2` (BEFORE encounter)
+``vr3``                          Initial radial velocity of object `_3` (BEFORE encounter)
+``vt3``                          Initial tangential velocity of object `_3` (BEFORE encounter)
+``st1``                          Star type of object `_1`
+``st2``                          Star type of object `_2`
+``st3``                          Star type of object `_3`
+``rad1``                         Stellar radius of object `_1` (units = Rsun)
+``rad2``                         Stellar radius of object `_2` (units = Rsun)
+``rad3``                         Stellar radius of object `_3` (units = Rsun)
+``lum1``                         Stellar luminosity of object `_1` (units = Lsun)
+``lum2``                         Stellar luminosity of object `_2` (units = Lsun)
+``lum3``                         Stellar luminosity of object `_3` (units = Lsun)
 ==============================  =====================================================
 
 
