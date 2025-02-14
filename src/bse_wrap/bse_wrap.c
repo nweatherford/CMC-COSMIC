@@ -675,12 +675,14 @@ void bse_set_bhsigmafrac(double bhsigmafrac) {snvars_.bhsigmafrac = bhsigmafrac;
 void bse_set_polar_kick_angle(int polar_kick_angle) {snvars_.polar_kick_angle = polar_kick_angle; }
 void bse_set_ifflag(int ifflag) { flags_.ifflag = ifflag; }
 void bse_set_wdflag(int wdflag) { flags_.wdflag = wdflag; }
+void bse_set_rtmsflag(int rtmsflag) { flags_.rtmsflag = rtmsflag; }
 void bse_set_bhflag(int bhflag) { flags_.bhflag = bhflag; }
 void bse_set_bhspinflag(int bhspinflag) { flags_.bhspinflag = bhspinflag; }
 void bse_set_bhms_coll_flag(int bhms_coll_flag) { flags_.bhms_coll_flag = bhms_coll_flag; }
 void bse_set_bhspinmag(double bhspinmag) { snvars_.bhspinmag = bhspinmag; }
 void bse_set_remnantflag(int remnantflag) { flags_.remnantflag = remnantflag; }
 void bse_set_mxns(double mxns) { snvars_.mxns = mxns;}
+void bse_set_wd_mass_lim(int wd_mass_lim) { flags_.wd_mass_lim =wd_mass_lim; }
 void bse_set_bconst(double bconst) { magvars_.bconst = bconst; }
 void bse_set_CK(double CK) {magvars_.ck = CK;}
 void bse_set_rejuv_fac(double rejuv_fac) {mixvars_.rejuv_fac = rejuv_fac;}
@@ -731,6 +733,25 @@ double bse_get_spp(int i, int j) { return(single_.spp[j-1][i-1]); }
 double bse_get_scm(int i, int j) { return(single_.scm[j-1][i-1]); }
 double bse_get_bpp(int i, int j) { return(binary_.bpp[j-1][i-1]); }
 double bse_get_bcm(int i, int j) { return(binary_.bcm[j-1][i-1]); }
+
+/**
+* @brief copies back the Fortran tausworthe rng state variables to the C state
+*
+* @return state with variables copied from the Fortran rng
+*/
+void bse_set_bcm_bpp_cols(void){
+    int i;
+
+    col_.n_col_bpp = BPP_NUM_COLUMNS;
+    col_.n_col_bcm = BCM_NUM_COLUMNS;
+
+    for(i=0 ; i < BCM_NUM_COLUMNS ; i++)
+        col_.col_inds_bcm[i] = i+1;
+
+    for(i=0 ; i < BPP_NUM_COLUMNS ; i++)
+        col_.col_inds_bpp[i] = i+1;
+
+}
 
 /**
 * @brief copies back the Fortran tausworthe rng state variables to the C state

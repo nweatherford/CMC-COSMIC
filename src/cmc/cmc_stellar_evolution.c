@@ -46,6 +46,7 @@ void restart_stellar_evolution(void){
   bse_set_acc_lim(BSE_ACC_LIM);
   bse_set_ifflag(BSE_IFFLAG);
   bse_set_wdflag(BSE_WDFLAG);
+  bse_set_rtmsflag(BSE_RTMSFLAG);
   bse_set_bhflag(BSE_BHFLAG);
   bse_set_grflag(BSE_GRFLAG);
   bse_set_kickflag(BSE_KICKFLAG);
@@ -56,6 +57,7 @@ void restart_stellar_evolution(void){
   bse_set_bhms_coll_flag(BSE_BHMS_COLL_FLAG);
   bse_set_bhspinmag(BSE_BHSPINMAG);
   bse_set_mxns(BSE_MXNS); //3 if remnantflag=1 or 2, 1.8 if remnantflag=0 (see evolv2.f)
+  bse_set_wd_mass_lim(BSE_WD_MASS_LIM);
   bse_set_bconst(BSE_BCONST);
   bse_set_CK(BSE_CK);
   bse_set_rejuv_fac(BSE_REJUV_FAC);
@@ -81,6 +83,9 @@ void restart_stellar_evolution(void){
   /* set parameters relating to metallicity */
   zpars = (double *) malloc(20 * sizeof(double));
   bse_zcnsts(&METALLICITY, zpars);
+
+  /* set the variables for the BCM/BPP arrays */
+  bse_set_bcm_bpp_cols();
 
   /* set collisions matrix */
   bse_instar();
@@ -138,6 +143,7 @@ void stellar_evolution_init(void){
   bse_set_acc_lim(BSE_ACC_LIM);
   bse_set_ifflag(BSE_IFFLAG);
   bse_set_wdflag(BSE_WDFLAG);
+  bse_set_rtmsflag(BSE_RTMSFLAG);
   bse_set_bhflag(BSE_BHFLAG);
   bse_set_grflag(BSE_GRFLAG);
   bse_set_kickflag(BSE_KICKFLAG);
@@ -148,6 +154,7 @@ void stellar_evolution_init(void){
   bse_set_bhms_coll_flag(BSE_BHMS_COLL_FLAG);
   bse_set_bhspinmag(BSE_BHSPINMAG);
   bse_set_mxns(BSE_MXNS); //3 if remnantflag=1 or 2, 1.8 if remnantflag=0 (see evolv2.f)
+  bse_set_wd_mass_lim(BSE_WD_MASS_LIM);
   bse_set_bconst(BSE_BCONST);
   bse_set_CK(BSE_CK);
   bse_set_rejuv_fac(BSE_REJUV_FAC);
@@ -174,9 +181,12 @@ void stellar_evolution_init(void){
   zpars = (double *) malloc(20 * sizeof(double));
   bse_zcnsts(&METALLICITY, zpars);
 
+  /* set the variables for the BCM/BPP arrays */
+  bse_set_bcm_bpp_cols();
+
   /* set collisions matrix */
   bse_instar();
-  dprintf("se_init: %g %g %g %d %g %g %g %d %d %d %d %d %d %g %d %g %g %g %g %g %g\n", BSE_NETA, BSE_BWIND, BSE_HEWIND, BSE_WINDFLAG, BSE_PISN, BSE_ALPHA1, BSE_LAMBDAF, BSE_CEFLAG, BSE_TFLAG, BSE_IFFLAG, BSE_WDFLAG, BSE_BHFLAG, BSE_REMNANTFLAG, BSE_MXNS, BSE_IDUM, BSE_SIGMA, BSE_BHSIGMAFRAC, BSE_BETA, BSE_EDDFAC, BSE_GAMMA, BSE_POLAR_KICK_ANGLE);
+  dprintf("se_init: %g %g %g %d %g %g %g %d %d %d %d %d %d %g %d %g %g %g %g %g %g\n", BSE_NETA, BSE_BWIND, BSE_HEWIND, BSE_WINDFLAG, BSE_PISN, BSE_ALPHA1, BSE_LAMBDAF, BSE_CEFLAG, BSE_TFLAG, BSE_IFFLAG, BSE_WDFLAG, BSE_RTMSFLAG, BSE_BHFLAG, BSE_REMNANTFLAG, BSE_MXNS, BSE_IDUM, BSE_SIGMA, BSE_BHSIGMAFRAC, BSE_BETA, BSE_EDDFAC, BSE_GAMMA, BSE_POLAR_KICK_ANGLE);
 
   for (k=1; k<=mpiEnd-mpiBegin+1; k++) {
     long g_k = get_global_idx(k);
@@ -475,7 +485,7 @@ void do_stellar_evolution(gsl_rng *rng)
         /* extract info from scm array */ /* PK looping over a large number anticipating further changes */
 	        i = 1;
 	        j = 1;
-        	while (bse_get_bcm(i,1)>=0.0 && i < 50000) {
+        	while (bse_get_bcm(i,1)>=0.0 && i < BCM_NUM_ROWS) {
           		if(i > 1) {
             			if(bse_get_bcm(i,2) == 13 && bse_get_bcm(i-1,2) < 13){
               				if(bse_get_bcm(i+1,1) >= 0.0){
@@ -490,7 +500,7 @@ void do_stellar_evolution(gsl_rng *rng)
           		i++;
         	}
         	i--;
-        	if(i+1 > 50000){
+        	if(i+1 > BCM_NUM_ROWS){
           		i = 0;
         	}
         	if(i>=1) {
@@ -808,11 +818,11 @@ void handle_bse_outcome(long k, long kb, double *vs, double tphysf, int kprev0, 
   /* 5100000 will eventually be a possible max array length... */
   j = 1;
   jj = 1;
-  while (bse_get_bcm(j, 1) >= 0 && j<50000) {
+  while (bse_get_bcm(j, 1) >= 0 && j<BCM_NUM_ROWS) {
     j++;
   }
   j--;
-  if(j+1 > 50000) {
+  if(j+1 > BCM_NUM_ROWS) {
      j = 0;
   }
   if (j >= 1) {
@@ -1348,7 +1358,7 @@ void write_morepulsar(long i){      //Shi
         if (j==0){ //Single
                 if (star[i].se_k==13){
                         spin = (twopi*yearsc)/star[i].se_ospin;
-                        parafprintf(morepulsarfile, "%ld %.8g 0 %ld -100 %.8g -100 %g -100 %g -100 %d -100 -100 -100 -100 -100 -100 -100 %.8g %.8g %.8g -100 -100 -100 -100 %d -100\n", tcount, TotalTime, star[i].id, star[i].se_mt, star[i].se_scm_B, spin, star[i].se_k, r, star[i].vr, star[i].vt, star[i].se_scm_formation);
+                        parafprintf(morepulsarfile, "%ld %.8g 0 %ld -100 %.8g -100 %g -100 %g -100 %d -100 -100 -100 -100 -100 -100 -100 %.8g %.8g %.8g -100 -100 -100 -100 %g -100\n", tcount, TotalTime, star[i].id, star[i].se_mt, star[i].se_scm_B, spin, star[i].se_k, r, star[i].vr, star[i].vt, star[i].se_scm_formation);
 
 
                 }
@@ -1356,7 +1366,7 @@ void write_morepulsar(long i){      //Shi
                 if (binary[j].bse_kw[0]==13 || binary[j].bse_kw[1]==13){
                         spin0 = (twopi*yearsc)/binary[j].bse_ospin[0];
                         spin1 = (twopi*yearsc)/binary[j].bse_ospin[1];
-                        parafprintf(morepulsarfile, "%ld %.8g 1 %ld %ld %.8g %.8g %g %g %g %g %d %d %.8g %.8g %g %g %g %g %.8g %.8g %.8g %g %g %g %g %d %d\n", tcount, TotalTime, binary[j].id1, binary[j].id2, binary[j].bse_mass[0], binary[j].bse_mass[1], binary[j].bse_bcm_B[0], binary[j].bse_bcm_B[1], spin0, spin1, binary[j].bse_kw[0], binary[j].bse_kw[1], binary[j].a* units.l/AU, binary[j].e, binary[j].bse_bcm_radrol[0], binary[j].bse_bcm_radrol[1], binary[j].bse_bcm_dmdt[0], binary[j].bse_bcm_dmdt[1], r, star[i].vr, star[i].vt, binary[j].bse_bacc[0], binary[j].bse_bacc[1], binary[j].bse_tacc[0], binary[j].bse_tacc[1], binary[j].bse_bcm_formation[0], binary[j].bse_bcm_formation[1]);
+                        parafprintf(morepulsarfile, "%ld %.8g 1 %ld %ld %.8g %.8g %g %g %g %g %d %d %.8g %.8g %g %g %g %g %.8g %.8g %.8g %g %g %g %g %g %g\n", tcount, TotalTime, binary[j].id1, binary[j].id2, binary[j].bse_mass[0], binary[j].bse_mass[1], binary[j].bse_bcm_B[0], binary[j].bse_bcm_B[1], spin0, spin1, binary[j].bse_kw[0], binary[j].bse_kw[1], binary[j].a* units.l/AU, binary[j].e, binary[j].bse_bcm_radrol[0], binary[j].bse_bcm_radrol[1], binary[j].bse_bcm_dmdt[0], binary[j].bse_bcm_dmdt[1], r, star[i].vr, star[i].vt, binary[j].bse_bacc[0], binary[j].bse_bacc[1], binary[j].bse_tacc[0], binary[j].bse_tacc[1], binary[j].bse_bcm_formation[0], binary[j].bse_bcm_formation[1]);
 
                 }
         }

@@ -23,6 +23,11 @@
 #include <math.h>
 #include "../common/taus113-v2.h"
 
+#define BCM_NUM_COLUMNS 49 
+#define BPP_NUM_COLUMNS 49 
+#define BCM_NUM_ROWS 50000 
+#define BPP_NUM_ROWS 1000 
+
 /**
 * @brief A structure used to pass binary information along to bse_wrap.c
 */
@@ -127,6 +132,7 @@ typedef struct{
 
 /* prototypes for fortran BSE functions */
 void zcnsts_(double *z, double *zpars);
+void bse_set_bcm_bpp_cols(void);
 void evolv2_(int *kstar, double *mass, double *tb, double *ecc, double *z, 
 	     double *tphysf, double *dtp, double *mass0, double *rad, double *lum,
              double *massc, double *radc, double *menv, double *renv,
@@ -180,7 +186,7 @@ extern struct { int idum1; } rand1_;
 extern struct { int idum2, iy, ir[32]; } rand2_;
 extern struct { long long int state[4]; int first;} taus113state_;
 extern struct { int ktype[15][15]; } types_;
-extern struct { int  tflag, ifflag, remnantflag, wdflag, bhflag, windflag,  qcflag, eddlimflag, bhspinflag, aic, rejuvflag,  htpmb, st_cr, st_tide, bdecayfac, grflag, bhms_coll_flag; } flags_;
+extern struct { int  tflag, ifflag, remnantflag, wdflag, bhflag, windflag,  qcflag, eddlimflag, bhspinflag, aic, rejuvflag,  htpmb, st_cr, st_tide, bdecayfac, grflag, bhms_coll_flag, wd_mass_lim, rtmsflag; } flags_;
 extern struct { int ceflag,cekickflag,cemergeflag,cehestarflag,ussn; } ceflags_;
 extern struct { int pisn_track[2]; } trackers_;
 extern struct { double zsun; } metvars_;
@@ -195,7 +201,8 @@ extern struct { double fprimc_array[16]; } tidalvars_;
 extern struct { double pts1, pts2, pts3; } points_;
 extern struct { double dmmax, drmax; } tstepc_;
 extern struct { double scm[14][50000], spp[3][20]; } single_;
-extern struct { double bcm[38][50000], bpp[43][1000]; } binary_;
+extern struct { double bcm[BCM_NUM_COLUMNS][BCM_NUM_ROWS], bpp[BPP_NUM_COLUMNS][BPP_NUM_ROWS]; } binary_;
+extern struct { int n_col_bpp,col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm,col_inds_bcm[BCM_NUM_COLUMNS]; } col_;
 extern struct { double merger; long int id1_pass, id2_pass; long int using_cmc; } cmcpass_;
 
 /* setters */
@@ -214,6 +221,7 @@ void bse_set_eddlimflag(int eddlimflag); /* Sets wind prescription (0=BSE, 1=Sta
 void bse_set_rejuvflag(int rejuvflag);
 void bse_set_grflag(int grflag);
 void bse_set_bhms_coll_flag(int bhms_coll_flag);
+void bse_set_wd_mass_lim(int wd_mass_lim);
 void bse_set_kickflag(int kickflag);
 void bse_set_using_cmc(void);
 void bse_set_pisn(double pisn); /* Sets Pair-instability pulsations and supernoa */ 
@@ -237,6 +245,7 @@ void bse_set_bhsigmafrac(double bhsigmafrac); /* Ad hoc factor to change BH SN k
 void bse_set_polar_kick_angle(int polar_kick_angle); /* Switch to set the allowed opening angle of SN kicks.  Defaults to 180 degrees*/
 void bse_set_ifflag(int ifflag); /* ifflag > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0) */
 void bse_set_wdflag(int wdflag); /* wdflag > 0 uses modified-Mestel cooling for WDs (0) */
+void bse_set_rtmsflag(int rtmsflag); /* rtmsflag > 0 uses data for radius at main sequence turnoff from 1-D stellar evolution codes (0) */
 void bse_set_bhflag(int bhflag); /* bhflag > 0 allows velocity kick at BH formation (0) */
 void bse_set_remnantflag(int remnantflag); /* remnantflag > 0 takes NS/BH mass from Belczynski et al. 2002, ApJ, 572, 407 (1) */
 void bse_set_qcflag(int qcflag); /* remnantflag > 0 takes NS/BH mass from Belczynski et al. 2002, ApJ, 572, 407 (1) */
