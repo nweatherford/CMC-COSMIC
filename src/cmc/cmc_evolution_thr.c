@@ -441,10 +441,10 @@ double GetTimeStep(gsl_rng *rng) {
 * @brief removes tidally-stripped stars
 */
 void tidally_strip_stars(void) {
-	int particle_should_escape = 0
+	int particle_should_escape = 0;
 	double phi_rtidal, phi_zero, Ecrit;
 	double m, r, phi;
-	long i, j, k
+	long i, j, k;
 	j = 0;
 	k = 0;
 	Etidal = 0.0;
