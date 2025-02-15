@@ -441,13 +441,13 @@ double GetTimeStep(gsl_rng *rng) {
 * @brief removes tidally-stripped stars
 */
 void tidally_strip_stars(void) {
-	double phi_rtidal, phi_zero, gierszalpha;
+	int particle_should_escape = 0
+	double phi_rtidal, phi_zero, Ecrit;
 	double m, r, phi;
-	long i, j, k;
-	k = 0;
+	long i, j, k
 	j = 0;
+	k = 0;
 	Etidal = 0.0;
-
 	DTidalMassLoss = TidalMassLoss - OldTidalMassLoss;
 
     rootgprintf("tidally_strip_stars(): iteration %ld: OldTidalMassLoss=%.6g DTidalMassLoss=%.6g\n",
@@ -455,156 +455,136 @@ void tidally_strip_stars(void) {
     pararootfprintf(logfile, "tidally_strip_stars(): iteration %ld: OldTidalMassLoss=%.6g DTidalMassLoss=%.6g\n",
             j, OldTidalMassLoss, DTidalMassLoss);
 	
-	/* Iterate the removal of tidally stripped stars 
-	 * by reducing Rtidal */
+	/* Iterate the removal of tidally stripped stars by reducing Rtidal */
 	do {
-		Rtidal = orbit_r * pow(Mtotal 
-			- (TidalMassLoss - OldTidalMassLoss), 1.0/3.0);
+		Rtidal = orbit_r * pow(Mtotal - (TidalMassLoss - OldTidalMassLoss), 1.0/3.0);
 		phi_rtidal = potential(Rtidal);
 		phi_zero = potential(0.0);
 		DTidalMassLoss = 0.0;
 
-		for (i = 1; i <= clus.N_MAX_NEW; i++) 
-		{
-
+		for (i = 1; i <= clus.N_MAX_NEW; i++){
 			int g_i = get_global_idx(i);
 			m = star_m[g_i];
 			r = star_r[g_i];
 			phi = star_phi[g_i];
 
-
 			if (TIDAL_TREATMENT == 0){
-				/*radial cut off criteria*/
-
-				if (star[i].r_apo > Rtidal && star[i].rnew < 1000000) { 
-					dprintf("tidally stripping star with r_apo > Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", i, star[i].id, m, star[i].E, star[i].binind);
-					star[i].rnew = SF_INFINITY;	/* tidally stripped star */
-					star[i].vrnew = 0.0;
-					star[i].vtnew = 0.0;
-					Eescaped += star[i].E * m / clus.N_STAR;
-					Jescaped += star[i].J * m / clus.N_STAR;
-
-					if (star[i].binind == 0) {
-						Eintescaped += star[i].Eint;
-					} else {
-						Ebescaped += -(binary[star[i].binind].m1/clus.N_STAR) * (binary[star[i].binind].m2/clus.N_STAR) / 
-							(2.0 * binary[star[i].binind].a);
-						Eintescaped += binary[star[i].binind].Eint1 + binary[star[i].binind].Eint2;
-					}
-
-					DTidalMassLoss += m / clus.N_STAR;
-					Etidal += star[i].E * m / clus.N_STAR;
-
-					/* logging */
-					parafprintf(escfile,
-							"%ld %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %ld ",
-							tcount, TotalTime, m * (units.m / clus.N_STAR) / MSUN,
-							r, star[i].vr, star[i].vt, star[i].r_peri,
-							star[i].r_apo, Rtidal, phi_rtidal, phi_zero, star[i].E, star[i].J, star[i].id);
-
-					if (star[i].binind) {
-						k = star[i].binind;
-						parafprintf(escfile, "1 %.8g %.8g %ld %ld %.8g %.8g ", 
-								binary[k].m1 * (units.m / clus.N_STAR) / MSUN, 
-								binary[k].m2 * (units.m / clus.N_STAR) / MSUN, 
-								binary[k].id1, binary[k].id2,
-								binary[k].a * units.l / AU, binary[k].e);
-					} else {
-						parafprintf(escfile, "0 0 0 0 0 0 0 ");	
-					}
-
-					if (star[i].binind == 0) {
-                        //parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na %g %g",
-                                //star[i].se_k, star[i].se_bhspin, star[i].se_ospin, star[i].se_scm_B);
-
-                        //Sourav: index mistake??
-                        //parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na",
-                        //        star[j].se_k, star[j].se_bhspin);
-                        parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na %g %g %g",
-                                star[i].se_k, star[i].se_bhspin, star[i].se_ospin, star[i].se_scm_B, star[i].se_scm_formation);
-					} else {
-                        parafprintf(escfile, "na %d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g na %g %g na na na",
-                                binary[k].bse_kw[0], binary[k].bse_kw[1], binary[k].bse_radius[0], binary[k].bse_radius[1], binary[k].bse_tb, binary[k].bse_lum[0], binary[k].bse_lum[1], binary[k].bse_massc[0], binary[k].bse_massc[1], binary[k].bse_radc[0], binary[k].bse_radc[1], binary[k].bse_menv[0], binary[k].bse_menv[1], binary[k].bse_renv[0], binary[k].bse_renv[1], binary[k].bse_tms[0], binary[k].bse_tms[1], binary[k].bse_bcm_dmdt[0], binary[k].bse_bcm_dmdt[1], binary[k].bse_bcm_radrol[0], binary[k].bse_bcm_radrol[1], binary[k].bse_ospin[0], binary[k].bse_ospin[1], binary[k].bse_bcm_B[0], binary[k].bse_bcm_B[1], binary[k].bse_bcm_formation[0], binary[k].bse_bcm_formation[1], binary[k].bse_bacc[0], binary[k].bse_bacc[1], binary[k].bse_tacc[0], binary[k].bse_tacc[1], binary[k].bse_mass0[0], binary[k].bse_mass0[1], binary[k].bse_epoch[0], binary[k].bse_epoch[1], binary[k].bse_bhspin[0], binary[k].bse_bhspin[1]);
-					}
-					parafprintf (escfile, "\n");
-
-					// Meagan - check for, and count, escaping BHs
-					//Sourav: make sure this is correct
-					count_esc_bhs(i);
-
-					/* perhaps this will fix the problem wherein stars are ejected (and counted)
-					   multiple times */
-					dprintf ("before SE: id=%ld k=%ld kw=%d m=%g mt=%g R=%g L=%g mc=%g rc=%g menv=%g renv=%g ospin=%g epoch=%g tms=%g tphys=%g phi=%g r=%g\n",
-							star[i].id,i,star[i].se_k,star[i].se_mass,star[i].se_mt,star[i].se_radius,star[i].se_lum,star[i].se_mc,star[i].se_rc,
-							star[i].se_menv,star[i].se_renv,star[i].se_ospin,star[i].se_epoch,star[i].se_tms,star[i].se_tphys, phi, r);
-
-					destroy_obj(i);
-				}
+				/* Apocenter escape criterion
+				   - CMC default prior to Chatterjee et al. (2010)(https://ui.adsabs.harvard.edu/abs/2010ApJ...719..915C)
+	               - Underperforms Giersz energy criterion for clusters on circular orbits (Chatterjee et al. 2010)
+	               - Outperforms Giersz energy criterion for clusters on eccentric orbits (Appendix A of Rodriguez et al. 2023)(https://ui.adsabs.harvard.edu/abs/2023MNRAS.521..124R)
+				   - See also discussion in Appendix A of Weatherford et al. (2023)(https://ui.adsabs.harvard.edu/abs/2023ApJ...946..104W)
+		        */
+				Ecrit = 1.5 * phi_rtidal;
+				particle_should_escape = (star[i].r_apo > RTIDAL_COEFF * Rtidal && star[i].rnew < 1000000);
 			}
 
-			else if (TIDAL_TREATMENT == 1){
-				/* DEBUG: Now using Giersz prescription for tidal stripping 
-				   (Giersz, Heggie, & Hurley 2008; arXiv:0801.3709).
-				   Note that this alpha factor behaves strangely for small N (N<~10^3) */
+			else if (TIDAL_TREATMENT > 0){
+				/* One of several energy-based escape criteria */
 
-				gierszalpha = 1.5 - 3.0 * pow(log(GAMMA * ((double) clus.N_STAR)) / ((double) clus.N_STAR), 0.25);
+				if (TIDAL_TREATMENT == 1){
+					/* Giersz alpha criterion (Giersz, Heggie, & Hurley 2008)(https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..429G)
+	                   - CMC default since Chatterjee et al. (2010)(https://ui.adsabs.harvard.edu/abs/2010ApJ...719..915C) 
+	                   - Modifies the raw energy criterion (below) to make escape slightly harder, thereby roughly accounting for
+					     backscattering of potential escapers back down to lower energies before they actually cross beyond Rtidal.
+				       - For a detailed comparison to the raw energy criterion, see Weatherford et al. 2024)(https://ui.adsabs.harvard.edu/abs/2024ApJ...967...42W)
+				    WARNING: This criterion behaves strangely for small N (N<~10^3)
+                	*/
+					Ecrit = (1.5 - 3.0 * pow(log(GAMMA * ((double) clus.N_STAR)) / ((double) clus.N_STAR), 0.25)) * phi_rtidal;
 
-				if (star[i].E > gierszalpha * phi_rtidal && star[i].rnew < 1000000) {
-					dprintf("tidally stripping star with E > phi rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", i, star[i].id, m, star[i].E, star[i].binind); 
-					star[i].rnew = SF_INFINITY;	/* tidally stripped star */
-					star[i].vrnew = 0.0;
-					star[i].vtnew = 0.0;
-					Eescaped += star[i].E * m / clus.N_STAR;
-					Jescaped += star[i].J * m / clus.N_STAR;
-
-					if (star[i].binind == 0) {
-						Eintescaped += star[i].Eint;
-					} else {
-						Ebescaped += -(binary[star[i].binind].m1/clus.N_STAR) * (binary[star[i].binind].m2/clus.N_STAR) / 
-							(2.0 * binary[star[i].binind].a);
-						Eintescaped += binary[star[i].binind].Eint1 + binary[star[i].binind].Eint2;
-					}
-
-					DTidalMassLoss += m / clus.N_STAR;
-					Etidal += star[i].E * m / clus.N_STAR;
-
-					/* logging */
-					parafprintf(escfile,
-							"%ld %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %ld ",
-							tcount, TotalTime, m * (units.m / clus.N_STAR) / MSUN,
-							r, star[i].vr, star[i].vt, star[i].r_peri,
-							star[i].r_apo, Rtidal, phi_rtidal, phi_zero, star[i].E, star[i].J, star[i].id);
-
-					if (star[i].binind) {
-						k = star[i].binind;
-						parafprintf(escfile, "1 %.8g %.8g %ld %ld %.8g %.8g ", 
-								binary[k].m1 * (units.m / clus.N_STAR) / MSUN, 
-								binary[k].m2 * (units.m / clus.N_STAR) / MSUN, 
-								binary[k].id1, binary[k].id2,
-								binary[k].a * units.l / AU, binary[k].e);
-					} else {
-						parafprintf(escfile, "0 0 0 0 0 0 0 ");	
-					}
-
-					if (star[i].binind == 0) {
-                        //parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na %g %g",
-                               //star[i].se_k, star[i].se_bhspin, star[i].se_ospin, star[i].se_scm_B);
-
-                        //Sourav: index mistakes; make sure the fix is correct
-                        //parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na",
-                        //        star[j].se_k, star[j].se_bhspin);
-			parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na %g %g %g",
-                                star[i].se_k, star[i].se_bhspin, star[i].se_ospin, star[i].se_scm_B, star[i].se_scm_formation);
-					} else {
-                        parafprintf(escfile, "na %d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g na %g %g na na na",
-                                binary[k].bse_kw[0], binary[k].bse_kw[1], binary[k].bse_radius[0], binary[k].bse_radius[1], binary[k].bse_tb, binary[k].bse_lum[0], binary[k].bse_lum[1], binary[k].bse_massc[0], binary[k].bse_massc[1], binary[k].bse_radc[0], binary[k].bse_radc[1], binary[k].bse_menv[0], binary[k].bse_menv[1], binary[k].bse_renv[0], binary[k].bse_renv[1], binary[k].bse_tms[0], binary[k].bse_tms[1], binary[k].bse_bcm_dmdt[0], binary[k].bse_bcm_dmdt[1], binary[k].bse_bcm_radrol[0], binary[k].bse_bcm_radrol[1], binary[k].bse_ospin[0], binary[k].bse_ospin[1], binary[k].bse_bcm_B[0], binary[k].bse_bcm_B[1], binary[k].bse_bcm_formation[0], binary[k].bse_bcm_formation[1], binary[k].bse_bacc[0], binary[k].bse_bacc[1], binary[k].bse_tacc[0], binary[k].bse_tacc[1], binary[k].bse_mass0[0], binary[k].bse_mass0[1], binary[k].bse_epoch[0], binary[k].bse_epoch[1], binary[k].bse_bhspin[0], binary[k].bse_bhspin[1]);
-					}
-					parafprintf (escfile, "\n");
-
-					/* perhaps this will fix the problem wherein stars are ejected (and counted)
-					   multiple times */
-					destroy_obj(i);
+				} else if (TIDAL_TREATMENT == 2){
+					/* Raw energy criterion, from circular restricted three-body problem for circular cluster orbit
+	                   - Removes bodies the moment they surpass the absolute minimum energy needed to escape, ignoring tidal asymmetry
+					   - This was used by Weatherford et al. (2024)(Weatherford et al. 2024)(https://ui.adsabs.harvard.edu/abs/2024ApJ...967...42W)
+					     to compare to earlier literature results and may yield more accurate (thinner, lower velocity dispersion) tidal tails
+				         from clusters than the Giersz alpha criterion, which may artificially inflate the velocities of escaping stars.
+                	*/
+					Ecrit =  1.5 * phi_rtidal;
 				}
+				particle_should_escape = (star[i].E > Ecrit && star[i].rnew < 1000000);
+			}
+
+			if (particle_should_escape){
+				if (TIDAL_TREATMENT == 0){
+					dprintf("tidally stripping star with r_apo > RTIDAL_COEFF * Rtidal: i=%ld id=%ld m=%g E=%g Ecrit=%g binind=%ld\n", i, star[i].id, m, star[i].E, Ecrit, star[i].binind);
+				} else {
+					dprintf("tidally stripping star with E > Ecrit: i=%ld id=%ld m=%g E=%g Ecrit=%g binind=%ld\n", i, star[i].id, m, star[i].E, Ecrit, star[i].binind);
+				}
+				star[i].rnew = SF_INFINITY;	/* tidally stripped star */
+				star[i].vrnew = 0.0;
+				star[i].vtnew = 0.0;
+				Eescaped += star[i].E * m / clus.N_STAR;
+				Jescaped += star[i].J * m / clus.N_STAR;
+				
+				if (star[i].binind == 0) {
+					Eintescaped += star[i].Eint;
+				} else {
+					Ebescaped += -(binary[star[i].binind].m1/clus.N_STAR) * (binary[star[i].binind].m2/clus.N_STAR) / 
+						(2.0 * binary[star[i].binind].a);
+					Eintescaped += binary[star[i].binind].Eint1 + binary[star[i].binind].Eint2;
+				}
+
+				DTidalMassLoss += m / clus.N_STAR;
+				Etidal += star[i].E * m / clus.N_STAR;
+
+				/* logging */
+				parafprintf(escfile,
+						"%ld %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %ld ",
+						tcount, TotalTime, m * (units.m / clus.N_STAR) / MSUN,
+						r, star[i].vr, star[i].vt, star[i].r_peri, star[i].r_apo,
+						Rtidal, phi_rtidal, phi_zero, star[i].E, star[i].J, star[i].id);
+
+				if (star[i].binind) {
+					k = star[i].binind;
+					parafprintf(escfile, "1 %.8g %.8g %ld %ld %.8g %.8g ", 
+							binary[k].m1 * (units.m / clus.N_STAR) / MSUN, 
+							binary[k].m2 * (units.m / clus.N_STAR) / MSUN, 
+							binary[k].id1, binary[k].id2,
+							binary[k].a * units.l / AU, binary[k].e);
+				} else {
+					parafprintf(escfile, "0 %.8g nan %ld nan nan nan ", m * (units.m / clus.N_STAR) / MSUN, star[i].id);	
+				}
+
+				if (star[i].binind == 0) {
+                    parafprintf(escfile, "%d nan nan %g nan nan %g nan %g nan %g nan %g nan %g nan %g nan nan nan nan nan %g nan %g nan %g nan %g nan %g nan %g nan %g nan %g nan %g",
+                            star[i].se_k    , star[i].se_radius, star[i].se_lum          , star[i].se_mc  ,
+						    star[i].se_rc   , star[i].se_menv  , star[i].se_renv         , star[i].se_tms ,
+						    star[i].se_ospin, star[i].se_scm_B , star[i].se_scm_formation, star[i].se_bacc,
+						    star[i].se_tacc , star[i].se_mass  , star[i].se_epoch        , star[i].se_bhspin, Ecrit);
+				} else {
+                    parafprintf(escfile, "nan %d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g",
+                            binary[k].bse_kw           [0], binary[k].bse_kw           [1],
+						    binary[k].bse_radius       [0], binary[k].bse_radius       [1],
+						    binary[k].bse_tb,
+						    binary[k].bse_lum          [0], binary[k].bse_lum          [1],
+						    binary[k].bse_massc        [0], binary[k].bse_massc        [1],
+						    binary[k].bse_radc         [0], binary[k].bse_radc         [1],
+						    binary[k].bse_menv         [0], binary[k].bse_menv         [1],
+						    binary[k].bse_renv         [0], binary[k].bse_renv         [1],
+						    binary[k].bse_tms          [0], binary[k].bse_tms          [1],
+						    binary[k].bse_bcm_dmdt     [0], binary[k].bse_bcm_dmdt     [1],
+						    binary[k].bse_bcm_radrol   [0], binary[k].bse_bcm_radrol   [1],
+						    binary[k].bse_ospin        [0], binary[k].bse_ospin        [1],
+						    binary[k].bse_bcm_B        [0], binary[k].bse_bcm_B        [1],
+						    binary[k].bse_bcm_formation[0], binary[k].bse_bcm_formation[1],
+						    binary[k].bse_bacc         [0], binary[k].bse_bacc         [1],
+						    binary[k].bse_tacc         [0], binary[k].bse_tacc         [1],
+						    binary[k].bse_mass0        [0], binary[k].bse_mass0        [1],
+						    binary[k].bse_epoch        [0], binary[k].bse_epoch        [1],
+						    binary[k].bse_bhspin       [0], binary[k].bse_bhspin       [1],
+						    Ecrit);
+				}
+				parafprintf(escfile, "\n");
+
+				//Meagan - check for, and count, escaping BHs
+				//Sourav: make sure this is correct
+				//count_esc_bhs(i);
+				//dprintf ("before SE: id=%ld k=%ld kw=%d m=%g mt=%g R=%g L=%g mc=%g rc=%g menv=%g renv=%g ospin=%g epoch=%g tms=%g tphys=%g phi=%g r=%g\n",
+						//star[i].id,i,star[i].se_k,star[i].se_mass,star[i].se_mt,star[i].se_radius,star[i].se_lum,star[i].se_mc,star[i].se_rc,
+						//star[i].se_menv,star[i].se_renv,star[i].se_ospin,star[i].se_epoch,star[i].se_tms,star[i].se_tphys, phi, r)
+	
+				/* perhaps this will fix the problem wherein stars are ejected (and counted) multiple times */
+				destroy_obj(i);
 			}
 		}
 
@@ -648,69 +628,96 @@ void tidally_strip_stars(void) {
 /**
 * @brief removes star
 *
-* @param j index of star
+* @param i index of star
 * @param phi_rtidal potential at tidal radius
 * @param phi_zero potential at zero
 */
-void remove_star(long j, double phi_rtidal, double phi_zero) {
-	double E, J, m, r;
+void remove_star(long i, double phi_rtidal, double phi_zero) {
+	double E, J, m, r, Ecrit;
 	long k=0;
 
-	/* dprintf("removing star: i=%ld id=%ld m=%g E=%g bin=%ld\n", j, star[j].id, star[j].m, star[j].E, star[j].binind); */
+	/* dprintf("removing star: i=%ld id=%ld m=%g E=%g bin=%ld\n", i, star[i].id, star[i].m, star[i].E, star[i].binind); */
 
-	E = star[j].E;
-	J = star[j].J;
-	star[j].rnew = SF_INFINITY;	/* tidally stripped star */
-	star[j].vrnew = 0.0;
-	star[j].vtnew = 0.0;
+	if (TIDAL_TREATMENT == 0){
+		Ecrit = 1.5 * phi_rtidal;
+	} else if (TIDAL_TREATMENT == 1){
+		Ecrit = (1.5 - 3.0 * pow(log(GAMMA * ((double) clus.N_STAR)) / ((double) clus.N_STAR), 0.25)) * phi_rtidal;
+	} else if (TIDAL_TREATMENT == 2){
+		Ecrit =  1.5 * phi_rtidal;
+	}
 
+	m = star_m[get_global_idx(i)];
+	r = star_r[get_global_idx(i)];
 
-	m = star_m[get_global_idx(j)];
-	r = star_r[get_global_idx(j)];
-	Eescaped += E * m / clus.N_STAR;
-	Jescaped += J * m / clus.N_STAR;
+	star[i].rnew = SF_INFINITY;	/* tidally stripped star */
+	star[i].vrnew = 0.0;
+	star[i].vtnew = 0.0;
+	Eescaped += star[i].E * m / clus.N_STAR;
+	Jescaped += star[i].J * m / clus.N_STAR;
 
-	if (star[j].binind == 0) {
-		Eintescaped += star[j].Eint;
+	if (star[i].binind == 0) {
+		Eintescaped += star[i].Eint;
 	} else {
-		Ebescaped += -(binary[star[j].binind].m1/clus.N_STAR) * (binary[star[j].binind].m2/clus.N_STAR) / 
-			(2.0 * binary[star[j].binind].a);
-		Eintescaped += binary[star[j].binind].Eint1 + binary[star[j].binind].Eint2;
+		Ebescaped += -(binary[star[i].binind].m1/clus.N_STAR) * (binary[star[i].binind].m2/clus.N_STAR) / 
+			(2.0 * binary[star[i].binind].a);
+		Eintescaped += binary[star[i].binind].Eint1 + binary[star[i].binind].Eint2;
 	}
 
 	TidalMassLoss += m / clus.N_STAR;
-	Etidal += E * m / clus.N_STAR;
+	Etidal += star[i].E * m / clus.N_STAR;
 
 	/* logging */
-	parafprintf(escfile, "%ld %.8g %.8g ",
-		tcount, TotalTime, m * (units.m / clus.N_STAR) / MSUN);
-	parafprintf(escfile, "%.8g %.8g %.8g ",
-		r, star[j].vr, star[j].vt);
-	parafprintf(escfile, "%.8g %.8g %.8g %.8g %.8g %.8g %.8g %ld ",
-	        star[j].r_peri, star[j].r_apo, Rtidal, phi_rtidal, phi_zero, E, J, star[j].id);
-	if (star[j].binind) {
-		k = star[j].binind;
+	parafprintf(escfile, "%ld %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %.8g %ld ",
+			tcount, TotalTime, m * (units.m / clus.N_STAR) / MSUN,
+			r, star[i].vr, star[i].vt, star[i].r_peri, star[i].r_apo,
+		    Rtidal, phi_rtidal, phi_zero, star[i].E, star[i].J, star[i].id);
+
+	if (star[i].binind) {
+		k = star[i].binind;
 		parafprintf(escfile, "1 %.8g %.8g %ld %ld %.8g %.8g ", 
-				binary[k].m1 * (units.m / clus.N_STAR) / MSUN, 
-				binary[k].m2 * (units.m / clus.N_STAR) / MSUN, 
+				binary[k].m1 * (units.m / clus.N_STAR) / MSUN,
+				binary[k].m2 * (units.m / clus.N_STAR) / MSUN,
 				binary[k].id1, binary[k].id2,
 				binary[k].a * units.l / AU, binary[k].e);
 	} else {
-		parafprintf(escfile, "0 0 0 0 0 0 0 ");	
+		parafprintf(escfile, "0 %.8g nan %ld nan nan nan ", m * (units.m / clus.N_STAR) / MSUN, star[i].id);
 	}
 
-	if (star[j].binind == 0) {
-		parafprintf(escfile, "%d na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na na %g na na %g %g %g",
-				star[j].se_k, star[j].se_bhspin, star[j].se_ospin, star[j].se_scm_B, star[j].se_scm_formation);
+	if (star[i].binind == 0) {
+		parafprintf(escfile, "%d nan nan %g nan nan %g nan %g nan %g nan %g nan %g nan %g nan nan nan nan nan %g nan %g nan %g nan %g nan %g nan %g nan %g nan %g nan %g",
+				star[i].se_k    , star[i].se_radius, star[i].se_lum          , star[i].se_mc  ,
+				star[i].se_rc   , star[i].se_menv  , star[i].se_renv         , star[i].se_tms ,
+				star[i].se_ospin, star[i].se_scm_B , star[i].se_scm_formation, star[i].se_bacc,
+				star[i].se_tacc , star[i].se_mass  , star[i].se_epoch        , star[i].se_bhspin, Ecrit);
 	} else {
-		parafprintf(escfile, "na %d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g na %g %g na na na",
-                                binary[k].bse_kw[0], binary[k].bse_kw[1], binary[k].bse_radius[0], binary[k].bse_radius[1], binary[k].bse_tb, binary[k].bse_lum[0], binary[k].bse_lum[1], binary[k].bse_massc[0], binary[k].bse_massc[1], binary[k].bse_radc[0], binary[k].bse_radc[1], binary[k].bse_menv[0], binary[k].bse_menv[1], binary[k].bse_renv[0], binary[k].bse_renv[1], binary[k].bse_tms[0], binary[k].bse_tms[1], binary[k].bse_bcm_dmdt[0], binary[k].bse_bcm_dmdt[1], binary[k].bse_bcm_radrol[0], binary[k].bse_bcm_radrol[1], binary[k].bse_ospin[0], binary[k].bse_ospin[1], binary[k].bse_bcm_B[0], binary[k].bse_bcm_B[1], binary[k].bse_bcm_formation[0], binary[k].bse_bcm_formation[1], binary[k].bse_bacc[0], binary[k].bse_bacc[1], binary[k].bse_tacc[0], binary[k].bse_tacc[1], binary[k].bse_mass0[0], binary[k].bse_mass0[1], binary[k].bse_epoch[0], binary[k].bse_epoch[1], binary[k].bse_bhspin[0], binary[k].bse_bhspin[1]);
+		 parafprintf(escfile, "nan %d %d %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g",
+			 	binary[k].bse_kw           [0], binary[k].bse_kw           [1],
+			 	binary[k].bse_radius       [0], binary[k].bse_radius       [1],
+			 	binary[k].bse_tb,
+			 	binary[k].bse_lum          [0], binary[k].bse_lum          [1],
+			 	binary[k].bse_massc        [0], binary[k].bse_massc        [1],
+			 	binary[k].bse_radc         [0], binary[k].bse_radc         [1],
+			 	binary[k].bse_menv         [0], binary[k].bse_menv         [1],
+			 	binary[k].bse_renv         [0], binary[k].bse_renv         [1],
+			 	binary[k].bse_tms          [0], binary[k].bse_tms          [1],
+			 	binary[k].bse_bcm_dmdt     [0], binary[k].bse_bcm_dmdt     [1],
+			 	binary[k].bse_bcm_radrol   [0], binary[k].bse_bcm_radrol   [1],
+			 	binary[k].bse_ospin        [0], binary[k].bse_ospin        [1],
+			 	binary[k].bse_bcm_B        [0], binary[k].bse_bcm_B        [1],
+			 	binary[k].bse_bcm_formation[0], binary[k].bse_bcm_formation[1],
+			 	binary[k].bse_bacc         [0], binary[k].bse_bacc         [1],
+			 	binary[k].bse_tacc         [0], binary[k].bse_tacc         [1],
+			 	binary[k].bse_mass0        [0], binary[k].bse_mass0        [1],
+			 	binary[k].bse_epoch        [0], binary[k].bse_epoch        [1],
+			 	binary[k].bse_bhspin       [0], binary[k].bse_bhspin       [1],
+			 	Ecrit);
 	}
-	parafprintf (escfile, "\n");
+	parafprintf(escfile, "\n");
 
-	/* perhaps this will fix the problem wherein stars are ejected (and counted)
-	   multiple times */
-	destroy_obj(j);
+	//count_esc_bhs(i);
+
+	/* perhaps this will fix the problem wherein stars are ejected (and counted) multiple times */
+	destroy_obj(i);
 }
 
 /**
@@ -845,15 +852,26 @@ void get_positions_loop(struct get_pos_str *get_pos_dat){
 		}
 
 		/* Check for rmax > R_MAX (tidal radius) */
-		if (rmax >= Rtidal) {
-			/* dprintf("tidally stripping star with rmax >= Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", j, star[j].id, star[j].m, star[j].E, star[j].binind); */
-			dprintf("tidally stripping star with rmax >= Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", g_j, star[j].id, star_m[g_j], star[j].E, star[j].binind);
-			star[j].r_apo= rmax;
-			star[j].r_peri= rmin;
-			remove_star(j, phi_rtidal, phi_zero);
-			continue;
+		if (TIDAL_TREATMENT == 0 && RTIDAL_COEFF > 1){
+			if (rmax >= RTIDAL_COEFF * Rtidal) {
+				/* dprintf("tidally stripping star with rmax >= RTIDAL_COEFF Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", j, star[j].id, star[j].m, star[j].E, star[j].binind); */
+				dprintf("tidally stripping star with rmax >= RTIDAL_COEFF * Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", g_j, star[j].id, star_m[g_j], star[j].E, star[j].binind);
+				star[j].r_apo= rmax;
+				star[j].r_peri= rmin;
+				remove_star(j, phi_rtidal, phi_zero);
+				continue;
+			}
+		} else {
+			if (rmax >= Rtidal) {
+				/* dprintf("tidally stripping star with rmax >= Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", j, star[j].id, star[j].m, star[j].E, star[j].binind); */
+				dprintf("tidally stripping star with rmax >= Rtidal: i=%ld id=%ld m=%g E=%g binind=%ld\n", g_j, star[j].id, star_m[g_j], star[j].E, star[j].binind);
+				star[j].r_apo= rmax;
+				star[j].r_peri= rmin;
+				remove_star(j, phi_rtidal, phi_zero);
+				continue;
+			}
 		}
-
+		
 		g1 = sqrt(3.0 * (rmax - rmin) / dQdr_min);	/* g(-1) */
 		g2 = sqrt(-3.0 * (rmax - rmin) / dQdr_max);	/* g(+1) */
 
