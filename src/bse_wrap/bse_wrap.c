@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "bse_wrap.h"
 
@@ -656,6 +657,32 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
 void bse_set_using_cmc(void) {cmcpass_.using_cmc = 1; }
 void bse_set_idum(int idum) { rand1_.idum1 = idum; }
 void bse_init_umax(void) { integers_.umax = 0xFFFFFFFFLL; }
+
+/* COSMIC 4.0 stellar-evolution engine selector.
+ * stellar_engine: 0 = SSE (using_sse=1, using_metisse=0), 1 = METISSE (inverse).
+ * MUST be called before bse_zcnsts(); otherwise both flags default to 0 in the
+ * SE_FLAGS COMMON block and the dispatchers in deltat.f / mlwind.f / hrdiag.f
+ * silently no-op (uninitialized dt/dtr, etc.). */
+void bse_set_stellar_engine(int stellar_engine) {
+	if (stellar_engine == 1) {
+		se_flags_.using_metisse = 1;
+		se_flags_.using_sse = 0;
+	} else {
+		se_flags_.using_metisse = 0;
+		se_flags_.using_sse = 1;
+	}
+}
+
+/* Populate the METISSEVARS COMMON block. Only meaningful when STELLAR_ENGINE=1.
+ * COSMIC's METISSE_utils.f90 strips trailing NUL via get_csafe_string, so a
+ * standard NUL-terminated C string into the 256-char buffer works. */
+void bse_set_metisse_inputs(char *path_to_tracks, char *path_to_he_tracks,
+                            double z_match_limit, int metisse_verbose) {
+	if (path_to_tracks    != NULL) strncpy(metissevars_.path_to_tracks,    path_to_tracks,    256);
+	if (path_to_he_tracks != NULL) strncpy(metissevars_.path_to_he_tracks, path_to_he_tracks, 256);
+	metissevars_.z_match_limit   = z_match_limit;
+	metissevars_.metisse_verbose = metisse_verbose;
+}
 void bse_set_eddlimflag(int eddlimflag) { flags_.eddlimflag = eddlimflag; }
 void bse_set_sigmadiv(double sigmadiv) { snvars_.sigmadiv = sigmadiv; }
 

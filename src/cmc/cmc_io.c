@@ -1164,6 +1164,43 @@ if(myid==0) {
 				PRINT_PARSED(PARAMDOC_STELLAR_EVOLUTION);
 				sscanf(values, "%ld", &STELLAR_EVOLUTION);
 				parsed.STELLAR_EVOLUTION = 1;
+			} else if (strcmp(parameter_name, "STELLAR_ENGINE") == 0) {
+				PRINT_PARSED(PARAMDOC_STELLAR_ENGINE);
+				if (strncmp(values, "sse", 3) == 0) {
+					STELLAR_ENGINE = 0;
+				} else if (strncmp(values, "metisse", 7) == 0) {
+					STELLAR_ENGINE = 1;
+				} else {
+					eprintf("ERROR: STELLAR_ENGINE must be 'sse' or 'metisse' (got '%s').\n", values);
+					exit_cleanly(-1, __FUNCTION__);
+				}
+				parsed.STELLAR_ENGINE = 1;
+			} else if (strcmp(parameter_name, "PATH_TO_TRACKS") == 0) {
+				PRINT_PARSED(PARAMDOC_PATH_TO_TRACKS);
+				if (strncmp(values, "None", 4) == 0) {
+					PATH_TO_TRACKS = NULL;
+				} else {
+					PATH_TO_TRACKS = (char *) malloc(sizeof(char) * 256);
+					strncpy(PATH_TO_TRACKS, values, 256);
+				}
+				parsed.PATH_TO_TRACKS = 1;
+			} else if (strcmp(parameter_name, "PATH_TO_HE_TRACKS") == 0) {
+				PRINT_PARSED(PARAMDOC_PATH_TO_HE_TRACKS);
+				if (strncmp(values, "None", 4) == 0) {
+					PATH_TO_HE_TRACKS = NULL;
+				} else {
+					PATH_TO_HE_TRACKS = (char *) malloc(sizeof(char) * 256);
+					strncpy(PATH_TO_HE_TRACKS, values, 256);
+				}
+				parsed.PATH_TO_HE_TRACKS = 1;
+			} else if (strcmp(parameter_name, "Z_MATCH_LIMIT") == 0) {
+				PRINT_PARSED(PARAMDOC_Z_MATCH_LIMIT);
+				sscanf(values, "%lf", &Z_MATCH_LIMIT);
+				parsed.Z_MATCH_LIMIT = 1;
+			} else if (strcmp(parameter_name, "METISSE_VERBOSE") == 0) {
+				PRINT_PARSED(PARAMDOC_METISSE_VERBOSE);
+				sscanf(values, "%ld", &METISSE_VERBOSE);
+				parsed.METISSE_VERBOSE = 1;
 			} else if (strcmp(parameter_name, "TIDAL_TREATMENT") == 0) {
 				PRINT_PARSED(PARAMDOC_TIDAL_TREATMENT);
 				sscanf(values, "%ld", &TIDAL_TREATMENT);
@@ -1670,6 +1707,11 @@ if(myid==0) {
 	CHECK_PARSED(TIDALLY_STRIP_STARS, 1, PARAMDOC_TIDALLY_STRIP_STARS);
 	CHECK_PARSED(THETASEMAX, 1.412, PARAMDOC_THETASEMAX);
 	CHECK_PARSED(STELLAR_EVOLUTION, 0, PARAMDOC_STELLAR_EVOLUTION);
+	CHECK_PARSED(STELLAR_ENGINE, 0, PARAMDOC_STELLAR_ENGINE);
+	CHECK_PARSED(PATH_TO_TRACKS, NULL, PARAMDOC_PATH_TO_TRACKS);
+	CHECK_PARSED(PATH_TO_HE_TRACKS, NULL, PARAMDOC_PATH_TO_HE_TRACKS);
+	CHECK_PARSED(Z_MATCH_LIMIT, 1.0e-2, PARAMDOC_Z_MATCH_LIMIT);
+	CHECK_PARSED(METISSE_VERBOSE, 0, PARAMDOC_METISSE_VERBOSE);
     CHECK_PARSED(WRITE_STELLAR_INFO, 0, PARAMDOC_WRITE_STELLAR_INFO);
     CHECK_PARSED(WRITE_BH_INFO, 0, PARAMDOC_WRITE_BH_INFO);
     CHECK_PARSED(WRITE_RWALK_INFO, 0, PARAMDOC_WRITE_RWALK_INFO);

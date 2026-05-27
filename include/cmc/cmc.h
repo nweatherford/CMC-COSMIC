@@ -860,6 +860,31 @@ typedef struct{
 * @brief stellar evolution (0=off, 1=on)
 */
 	int STELLAR_EVOLUTION;
+#define PARAMDOC_STELLAR_ENGINE "stellar evolution engine (0=SSE Hurley fits, 1=METISSE interpolated tracks)"
+/**
+* @brief stellar evolution engine (0=SSE, 1=METISSE)
+*/
+	int STELLAR_ENGINE;
+#define PARAMDOC_PATH_TO_TRACKS "directory of main-sequence METISSE tracks (required when STELLAR_ENGINE=metisse)"
+/**
+* @brief directory of main-sequence METISSE tracks
+*/
+	int PATH_TO_TRACKS;
+#define PARAMDOC_PATH_TO_HE_TRACKS "directory of helium-star METISSE tracks (required when STELLAR_ENGINE=metisse)"
+/**
+* @brief directory of helium-star METISSE tracks
+*/
+	int PATH_TO_HE_TRACKS;
+#define PARAMDOC_Z_MATCH_LIMIT "max relative metallicity tolerance for matching METISSE tracks (default 1e-2)"
+/**
+* @brief METISSE metallicity match tolerance
+*/
+	int Z_MATCH_LIMIT;
+#define PARAMDOC_METISSE_VERBOSE "enable verbose METISSE diagnostic output (0=off, 1=on)"
+/**
+* @brief METISSE verbose output flag
+*/
+	int METISSE_VERBOSE;
 #define PARAMDOC_TIDAL_TREATMENT "choose the tidal cut-off criteria (0=radial criteria, 1=Giersz energy criteria)"
 /**
 * @brief choose the tidal cut-off criteria (0=radial criteria, 1=Giersz energy criteria)

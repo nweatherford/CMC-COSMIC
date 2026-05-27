@@ -229,9 +229,26 @@ extern struct { double bcm[BCM_NUM_COLUMNS][BCM_NUM_ROWS], bpp[BPP_NUM_COLUMNS][
 extern struct { int n_col_bpp, col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm, col_inds_bcm[BCM_NUM_COLUMNS]; } col_;
 extern struct { double merger; long int id1_pass, id2_pass; long int using_cmc; } cmcpass_;
 
+/* COSMIC 4.0 stellar-evolution engine COMMON blocks.
+ * SE_FLAGS selects SSE vs. METISSE via the Fortran dispatchers in deltat.f,
+ * mlwind.f, hrdiag.f, etc. Both flags default to 0 in COMMON; if neither is
+ * set to 1, the dispatchers no-op and stellar evolution silently breaks.
+ * METISSEVARS holds METISSE-only inputs; LOGICAL maps to 4-byte int with
+ * default gfortran ABI (struct end pads to 528 bytes). */
+extern struct { int using_metisse, using_sse; } se_flags_;
+extern struct {
+	char path_to_tracks[256];
+	char path_to_he_tracks[256];
+	double z_match_limit;
+	int metisse_verbose;
+} metissevars_;
+
 /* setters */
 void bse_set_idum(int idum); /* RNG seed (for NS birth kicks) */
 void bse_init_umax(void);    /* Force-set Tausworth umax mask (workaround for static-link stripping of int64.o BLOCK DATA on macOS) */
+void bse_set_stellar_engine(int stellar_engine); /* 0 = SSE, 1 = METISSE */
+void bse_set_metisse_inputs(char *path_to_tracks, char *path_to_he_tracks,
+                            double z_match_limit, int metisse_verbose);
 
 void bse_set_neta(double neta); /* Reimers mass-loss coefficent (neta*4x10^-13; 0.5 normally) */
 void bse_set_bwind(double bwind); /* binary enhanced mass loss parameter (inactive for single) */

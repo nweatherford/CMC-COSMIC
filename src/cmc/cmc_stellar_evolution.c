@@ -81,6 +81,20 @@ void restart_stellar_evolution(void){
   bse_set_gamma(BSE_GAMMA);
   bse_set_merger(-1.0);
   
+  /* COSMIC 4.0: select stellar engine and (if METISSE) push track paths into
+   * the Fortran COMMON blocks BEFORE bse_zcnsts. The Fortran dispatchers in
+   * deltat.f / mlwind.f / hrdiag.f branch on these flags; if both default to 0
+   * stellar evolution silently no-ops. */
+  if (STELLAR_ENGINE == 1) {
+    if (PATH_TO_TRACKS == NULL || PATH_TO_HE_TRACKS == NULL) {
+      eprintf("ERROR: STELLAR_ENGINE=metisse requires both PATH_TO_TRACKS and PATH_TO_HE_TRACKS.\n");
+      exit_cleanly(-1, __FUNCTION__);
+    }
+    bse_set_metisse_inputs(PATH_TO_TRACKS, PATH_TO_HE_TRACKS,
+                           Z_MATCH_LIMIT, (int) METISSE_VERBOSE);
+  }
+  bse_set_stellar_engine((int) STELLAR_ENGINE);
+
   /* set parameters relating to metallicity */
   zpars = (double *) malloc(20 * sizeof(double));
   bse_zcnsts(&METALLICITY, zpars);
@@ -180,6 +194,20 @@ void stellar_evolution_init(void){
   bse_set_gamma(BSE_GAMMA);
   bse_set_merger(-1.0);
   
+  /* COSMIC 4.0: select stellar engine and (if METISSE) push track paths into
+   * the Fortran COMMON blocks BEFORE bse_zcnsts. The Fortran dispatchers in
+   * deltat.f / mlwind.f / hrdiag.f branch on these flags; if both default to 0
+   * stellar evolution silently no-ops. */
+  if (STELLAR_ENGINE == 1) {
+    if (PATH_TO_TRACKS == NULL || PATH_TO_HE_TRACKS == NULL) {
+      eprintf("ERROR: STELLAR_ENGINE=metisse requires both PATH_TO_TRACKS and PATH_TO_HE_TRACKS.\n");
+      exit_cleanly(-1, __FUNCTION__);
+    }
+    bse_set_metisse_inputs(PATH_TO_TRACKS, PATH_TO_HE_TRACKS,
+                           Z_MATCH_LIMIT, (int) METISSE_VERBOSE);
+  }
+  bse_set_stellar_engine((int) STELLAR_ENGINE);
+
   /* set parameters relating to metallicity */
   zpars = (double *) malloc(20 * sizeof(double));
   bse_zcnsts(&METALLICITY, zpars);
@@ -817,7 +845,7 @@ void handle_bse_outcome(long k, long kb, double *vs, double tphysf, int kprev0, 
   int j, jj;
   long knew=0, knewp=0, convert;
   double dtp;
-  
+
   knew = 0;
   *VKO = 0.0;
 
@@ -1300,9 +1328,10 @@ void handle_bse_outcome(long k, long kb, double *vs, double tphysf, int kprev0, 
                 	} else {
                         	write_morepulsar(k);
 
-                	}	
-        	}	
+                	}
+        	}
 	}
+
 }
 
 /**
