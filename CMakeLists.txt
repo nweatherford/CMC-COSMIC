@@ -17,6 +17,20 @@ endforeach()
 
 project(CMC VERSION 1.0.0 LANGUAGES C Fortran)
 
+# On macOS, force Xcode's ar/ranlib (BSD-format archives) over any Homebrew
+# binutils GNU ar that may be earlier in PATH. Apple's ld rejects SysV-format
+# archives with "archive member '/' not a mach-o file".
+if(APPLE)
+    execute_process(COMMAND xcrun -f ar OUTPUT_VARIABLE _xcrun_ar OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND xcrun -f ranlib OUTPUT_VARIABLE _xcrun_ranlib OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(_xcrun_ar)
+        set(CMAKE_AR "${_xcrun_ar}" CACHE FILEPATH "Archiver" FORCE)
+    endif()
+    if(_xcrun_ranlib)
+        set(CMAKE_RANLIB "${_xcrun_ranlib}" CACHE FILEPATH "Ranlib" FORCE)
+    endif()
+endif()
+
 # The version number.
 set (CMC_VERSION_MAJOR 1)
 set (CMC_VERSION_MINOR 0)

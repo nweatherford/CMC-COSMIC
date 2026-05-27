@@ -190,6 +190,7 @@ void bse_comenv(bse_binary *binary, double *zpars,
 extern struct { int idum1; } rand1_;
 extern struct { int idum2, iy, ir[32]; } rand2_;
 extern struct { long long int state[4]; int first; } taus113state_;
+extern struct { long long int umax; } integers_;
 extern struct { int ktype[15][15]; } types_;
 extern struct {
     int tflag, ifflag, remnantflag, wdflag, bhflag, windflag,
@@ -230,6 +231,7 @@ extern struct { double merger; long int id1_pass, id2_pass; long int using_cmc; 
 
 /* setters */
 void bse_set_idum(int idum); /* RNG seed (for NS birth kicks) */
+void bse_init_umax(void);    /* Force-set Tausworth umax mask (workaround for static-link stripping of int64.o BLOCK DATA on macOS) */
 
 void bse_set_neta(double neta); /* Reimers mass-loss coefficent (neta*4x10^-13; 0.5 normally) */
 void bse_set_bwind(double bwind); /* binary enhanced mass loss parameter (inactive for single) */

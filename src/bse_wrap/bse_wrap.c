@@ -655,6 +655,7 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
 //OPT: Use inline before void -> makes it macro
 void bse_set_using_cmc(void) {cmcpass_.using_cmc = 1; }
 void bse_set_idum(int idum) { rand1_.idum1 = idum; }
+void bse_init_umax(void) { integers_.umax = 0xFFFFFFFFLL; }
 void bse_set_eddlimflag(int eddlimflag) { flags_.eddlimflag = eddlimflag; }
 void bse_set_sigmadiv(double sigmadiv) { snvars_.sigmadiv = sigmadiv; }
 

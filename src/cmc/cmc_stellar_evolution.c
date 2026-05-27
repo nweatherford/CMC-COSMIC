@@ -15,6 +15,7 @@
 */
 void restart_stellar_evolution(void){
   bse_set_using_cmc();
+  bse_init_umax();
   bse_set_neta(BSE_NETA);
   bse_set_bwind(BSE_BWIND);
   bse_set_hewind(BSE_HEWIND);
@@ -113,6 +114,7 @@ void stellar_evolution_init(void){
 
   /* BSE */
   bse_set_using_cmc();
+  bse_init_umax();
   bse_set_neta(BSE_NETA);
   bse_set_bwind(BSE_BWIND);
   bse_set_hewind(BSE_HEWIND);
