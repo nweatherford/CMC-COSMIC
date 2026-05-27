@@ -124,6 +124,15 @@ void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum
 * @param ecc ?
 * @param vs ?
 */
+/* Last-write-wins index of the most recent valid bcm/bpp row, as reported
+ * by evolv2's out args. Replaces the legacy "walk until tphys<0 sentinel"
+ * scan in handle_bse_outcome — BSE no longer sentinel-terminates. */
+static int bse_last_bcm_index = 0;
+static int bse_last_bpp_index = 0;
+
+int bse_get_bcm_index(void) { return bse_last_bcm_index; }
+int bse_get_bpp_index(void) { return bse_last_bpp_index; }
+
 void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lum,
 		double *massc, double *radc, double *menv, double *renv, double *ospin,
                 double *B_0, double *bacc, double *tacc,
@@ -139,20 +148,26 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
         vs[i] = 0.0;
     }
 
-    double kick_info[17][2];
+    double kick_info[18][2];
 
 
-    for(i=0;i<17;i++) {
+    for(i=0;i<18;i++) {
         for(j=0;j<2;j++){
             kick_info[i][j] = 0.0;
         }
     }
 
-    /* used by COSMIC, but not needed here */
-    //double bppout[23][1000], bcmout[42][50000];
+    /* New evolv2 out args. Stack-local so each call gets a fresh buffer;
+     * cached into bse_last_*_index for handle_bse_outcome via getters. */
+    int bpp_index_out = 0;
+    int bcm_index_out = 0;
+    double kick_info_out[18][2];
+    for (i = 0; i < 18; i++) { kick_info_out[i][0] = 0.0; kick_info_out[i][1] = 0.0; }
 
-    evolv2_(kstar,mass,tb,ecc,z,tphysf,dtp,mass0,rad,lum,massc,radc, menv,renv,ospin,B_0,bacc,tacc,epoch,tms,bhspin,tphys,zpars,vs, *kick_info);
+    evolv2_(kstar,mass,tb,ecc,z,tphysf,dtp,mass0,rad,lum,massc,radc, menv,renv,ospin,B_0,bacc,tacc,epoch,tms,bhspin,tphys,zpars,vs, *kick_info, &bpp_index_out, &bcm_index_out, *kick_info_out);
 
+    bse_last_bcm_index = bcm_index_out;
+    bse_last_bpp_index = bpp_index_out;
 }
 
 /**
@@ -351,7 +366,10 @@ void bse_star(int *kw, double *mass, double *mt, double *tm, double *tn, double 
      GB = giant branch parameters (10)
    */
 
-  star_(kw, mass, mt, tm, tn, tscls, lums, GB, zpars);
+  /* dtm, id are METISSE-only; SSE path ignores them. */
+  double dtm = 0.0;
+  int id = 0;
+  star_(kw, mass, mt, tm, tn, tscls, lums, GB, zpars, &dtm, &id);
 }
 
 /* hrdiag routine; shouldn't need to be used often outside of BSE */
@@ -440,10 +458,10 @@ void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double 
    */
   /* LOGICAL used by COSMIC, but not needed here */
     int disrupt=0;
-    double kick_info[17][2];
+    double kick_info[18][2];
     int i, j ;
 
-    for(i=0;i<17;i++) {
+    for(i=0;i<18;i++) {
         for(j=0;j<2;j++){
             kick_info[i][j] = 0.0;
         }
@@ -463,7 +481,9 @@ void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double 
 */
 void bse_mix(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin)
 {
-  mix_(mass, mt, aj, kw, zpars, bhspin);
+  /* dtm is METISSE-only; SSE path ignores it. */
+  double dtm = 0.0;
+  mix_(mass, mt, aj, kw, zpars, bhspin, &dtm);
 }
 
 /**
@@ -489,9 +509,9 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   int jp=0,switchedCE=0, disrupt=0;
   double tphys=0, evolve_type=0;
   double tms[2], rad[2], lumin[2], B_0[2], bacc[2], tacc[2], epoch[2], menv_bpp[2], renv_bpp[2];
-  double kick_info[17][2];
+  double kick_info[18][2];
 
-  for(i=0;i<17;i++) {
+  for(i=0;i<18;i++) {
       for(j=0;j<2;j++){
           kick_info[i][j] = 0.0;
       }
@@ -568,9 +588,11 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   //  printf("%g ", zpars[iii]);
   //}
   //printf(" kw1i=%d kw2i=%d m1i=%g m2i=%g r1i=%g r2i=%g epoch1=%g epoch2=%g ", (*tempbinary).bse_kw[0], (*tempbinary).bse_kw[1], (*tempbinary).bse_mass[0], (*tempbinary).bse_mass[1], (*tempbinary).bse_radius[0], (*tempbinary).bse_radius[1], (*tempbinary).bse_epoch[0], (*tempbinary).bse_epoch[1]);
+  /* deltam_1, deltam_2, dtm are METISSE-only; SSE path ignores them. */
+  double comenv_deltam_1 = 0.0, comenv_deltam_2 = 0.0, comenv_dtm = 0.0;
   comenv_(&((*tempbinary).bse_mass0[0]), &((*tempbinary).bse_mass[0]), &((*tempbinary).bse_massc[0]), &(AJ[0]), &JSPIN1, &((*tempbinary).bse_kw[0]),
 	  &((*tempbinary).bse_mass0[1]), &((*tempbinary).bse_mass[1]), &((*tempbinary).bse_massc[1]), &(AJ[1]), &JSPIN2, &((*tempbinary).bse_kw[1]),
-	  zpars, &((*tempbinary).e), &((*tempbinary).a), &(JORB), &COEL, &star1, &star2, &vk, *kick_info, &((*tempbinary).bse_bcm_formation[0]), &((*tempbinary).bse_bcm_formation[1]), &snvars_.sigma, &((*tempbinary).bse_bhspin[0]),&((*tempbinary).bse_bhspin[1]),&binstate,&mergertype,&jp,&tphys,&switchedCE,rad,tms,&evolve_type,&disrupt,lumin,B_0,bacc,tacc,epoch,menv_bpp,renv_bpp,vs);
+	  zpars, &((*tempbinary).e), &((*tempbinary).a), &(JORB), &COEL, &star1, &star2, &vk, *kick_info, &((*tempbinary).bse_bcm_formation[0]), &((*tempbinary).bse_bcm_formation[1]), &snvars_.sigma, &((*tempbinary).bse_bhspin[0]),&((*tempbinary).bse_bhspin[1]),&binstate,&mergertype,&jp,&tphys,&switchedCE,rad,tms,&evolve_type,&disrupt,lumin,B_0,bacc,tacc,epoch,menv_bpp,renv_bpp,vs,&comenv_deltam_1,&comenv_deltam_2,&comenv_dtm);
   //printf("kw1i=%d kw2i=%d m1f=%g m2f=%g r1f=%g r2f=%g ", (*tempbinary).bse_kw[0], (*tempbinary).bse_kw[1], (*tempbinary).bse_mass[0], (*tempbinary).bse_mass[1], (*tempbinary).bse_radius[0], (*tempbinary).bse_radius[1]);
   //printf("\n");
   ////
@@ -661,7 +683,7 @@ void bse_set_htpmb(int htpmb) { flags_.htpmb = htpmb; }
 void bse_set_rejuvflag(int rejuvflag) { flags_.rejuvflag = rejuvflag; }
 void bse_set_qcflag(int qcflag) { flags_.qcflag = qcflag; }
 void bse_set_don_lim(double don_lim) { mtvars_.don_lim = don_lim; }
-void bse_set_acc_lim(double acc_lim) { mtvars_.acc_lim = acc_lim; }
+void bse_set_acc_lim(double acc_lim) { mtvars_.acc_lim[0] = acc_lim; mtvars_.acc_lim[1] = acc_lim; }
 void bse_set_ussn(int ussn) { ceflags_.ussn = ussn; }
 void bse_set_neta(double neta) { windvars_.neta = neta; }
 void bse_set_bwind(double bwind) { windvars_.bwind = bwind; }
@@ -689,7 +711,7 @@ void bse_set_rejuv_fac(double rejuv_fac) {mixvars_.rejuv_fac = rejuv_fac;}
 void bse_set_pts1(double pts1) { points_.pts1 = pts1; }
 void bse_set_pts2(double pts2) { points_.pts2 = pts2; }
 void bse_set_pts3(double pts3) { points_.pts3 = pts3; }
-void bse_set_alpha1(double alpha1) { cevars_.alpha1 = alpha1; }
+void bse_set_alpha1(double alpha1) { cevars_.alpha1[0] = alpha1; cevars_.alpha1[1] = alpha1; }
 void bse_set_lambdaf(double lambdaf) { cevars_.lambdaf = lambdaf; }
 void bse_set_ceflag(int ceflag) { ceflags_.ceflag = ceflag; }
 void bse_set_cemergeflag(int cemergeflag) { ceflags_.cemergeflag = cemergeflag; }
@@ -727,7 +749,7 @@ void bse_set_taus113state(struct rng_t113_state state, int first) {
 /* getters */
 /* note the index flip and decrement so the matrices are accessed
    as they would be in fortran */
-double bse_get_alpha1(void) { return(cevars_.alpha1); }
+double bse_get_alpha1(void) { return(cevars_.alpha1[0]); }
 double bse_get_lambdaf(void) { return(cevars_.lambdaf); }
 double bse_get_spp(int i, int j) { return(single_.spp[j-1][i-1]); }
 double bse_get_scm(int i, int j) { return(single_.scm[j-1][i-1]); }
@@ -763,9 +785,9 @@ void bse_set_bcm_bpp_cols(void){
         5,  7, 33, 34, 45, 46, 47, 48           /* sep..merger_type */
     };
 
-    int bcm_to_all_extra[11] = {
+    int bcm_to_all_extra[14] = {
        10, 11, 12, 13, 14, 35, 36, 37, 38, 41,
-       42
+       42, 49, 50, 51
     };
 
     for(i=0 ; i < BCM_NUM_COLUMNS ; i++)
@@ -773,7 +795,7 @@ void bse_set_bcm_bpp_cols(void){
             col_.col_inds_bcm[i] = bcm_to_all[i]+1;
         } else {
             col_.col_inds_bcm[i] = bcm_to_all_extra[i-38]+1;
-        }  
+        }
 
     for(i=0 ; i < BPP_NUM_COLUMNS ; i++)
         if (i<43) {

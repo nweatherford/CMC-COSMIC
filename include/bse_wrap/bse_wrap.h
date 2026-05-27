@@ -23,10 +23,10 @@
 #include <math.h>
 #include "../common/taus113-v2.h"
 
-#define BCM_NUM_COLUMNS 49 
-#define BPP_NUM_COLUMNS 49 
-#define BCM_NUM_ROWS 50000 
-#define BPP_NUM_ROWS 1000 
+#define BCM_NUM_COLUMNS 52
+#define BPP_NUM_COLUMNS 52
+#define BCM_NUM_ROWS 50000
+#define BPP_NUM_ROWS 1000
 
 /**
 * @brief A structure used to pass binary information along to bse_wrap.c
@@ -133,23 +133,26 @@ typedef struct{
 /* prototypes for fortran BSE functions */
 void zcnsts_(double *z, double *zpars);
 void bse_set_bcm_bpp_cols(void);
-void evolv2_(int *kstar, double *mass, double *tb, double *ecc, double *z, 
+int bse_get_bcm_index(void); /* Last bcm-row index written by evolv2 (Fortran 1-indexed). */
+int bse_get_bpp_index(void); /* Last bpp-row index written by evolv2 (Fortran 1-indexed). */
+void evolv2_(int *kstar, double *mass, double *tb, double *ecc, double *z,
 	     double *tphysf, double *dtp, double *mass0, double *rad, double *lum,
              double *massc, double *radc, double *menv, double *renv,
 	     double *ospin, double *B_0, double *bacc, double *tacc, double *epoch,
-	     double *tms, double *bhspin, double *tphys, double *zpars, double *vs, double *kick_info);
+	     double *tms, double *bhspin, double *tphys, double *zpars, double *vs, double *kick_info,
+	     int *bpp_index_out, int *bcm_index_out, double *kick_info_out);
 void instar_(void);
 float ran3_(int *idum);
-void star_(int *kw, double *mass, double *mt, double *tm, double *tn, double *tscls, 
-	   double *lums, double *GB, double *zpars);
+void star_(int *kw, double *mass, double *mt, double *tm, double *tn, double *tscls,
+	   double *lums, double *GB, double *zpars, double *dtm, int *id);
 void hrdiag_(double *mass, double *aj, double *mt, double *tm, double *tn, double *tscls, 
 	     double *lums, double *GB, double *zpars, double *r, double *lum, int *kw, 
 	     double *mc, double *rc, double *menv, double *renv, double *k2,  double *bhspin, int *kidx);
 void kick_(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep, 
 	   double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *sigmahold, double *kick_info, int *disrupt, double *vs);
-void mix_(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin);
+void mix_(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin, double *dtm);
 // note: these function names only work if in lowercase here, even though FORTRAN versions in uppercase.
-void comenv_(double *M01, double *M1, double *MC1, double *AJ1, double *JSPIN1, int *KW1, double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2, double *ZPARS, double *ECC, double *SEP, double *JORB, int *COEL, int *star1, int *star2, double *vk, double *kick_info, int *formation1, int *formation2, double *sigmahold, double *bhspin1, double *bhspin2, int *binstate, int *mergertype, int *jp, double *tphys,int *swtichedCE, double *rad, double *tms, double *evolve_type, int *disrupt, double * lumin, double * B_0, double * bacc, double * tacc, double * epoch, double * menv_bpp, double * renv_bpp, double *bkick);
+void comenv_(double *M01, double *M1, double *MC1, double *AJ1, double *JSPIN1, int *KW1, double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2, double *ZPARS, double *ECC, double *SEP, double *JORB, int *COEL, int *star1, int *star2, double *vk, double *kick_info, int *formation1, int *formation2, double *sigmahold, double *bhspin1, double *bhspin2, int *binstate, int *mergertype, int *jp, double *tphys,int *swtichedCE, double *rad, double *tms, double *evolve_type, int *disrupt, double * lumin, double * B_0, double * bacc, double * tacc, double * epoch, double * menv_bpp, double * renv_bpp, double *bkick, double *deltam_1, double *deltam_2, double *dtm);
 
 
 /* wrapped BSE functions */
@@ -180,29 +183,49 @@ void bse_mix(double *mass, double *mt, double *aj, int *kw, double *zpars, doubl
 void bse_comenv(bse_binary *binary, double *zpars,
                 double *vs, int *fb);
 
-/* structs to access BSE common blocks */
-/* note the index swap between fortran and C: i,j->j,i */
+/* structs to access BSE common blocks.
+ * Field order/types MUST match the COMMON declarations in COSMIC's
+ * src/cosmic/src/const_bse.h. Mismatches cause memory corruption
+ * across COMMON-block boundaries. */
 extern struct { int idum1; } rand1_;
 extern struct { int idum2, iy, ir[32]; } rand2_;
-extern struct { long long int state[4]; int first;} taus113state_;
+extern struct { long long int state[4]; int first; } taus113state_;
 extern struct { int ktype[15][15]; } types_;
-extern struct { int  tflag, ifflag, remnantflag, wdflag, bhflag, windflag,  qcflag, eddlimflag, bhspinflag, aic, rejuvflag,  htpmb, st_cr, st_tide, bdecayfac, grflag, bhms_coll_flag, wd_mass_lim, rtmsflag; } flags_;
-extern struct { int ceflag,cekickflag,cemergeflag,cehestarflag,ussn; } ceflags_;
+extern struct {
+    int tflag, ifflag, remnantflag, wdflag, bhflag, windflag,
+        qcflag, eddlimflag, bhspinflag, aic, rejuvflag,
+        htpmb, st_cr, st_tide, bdecayfac, grflag,
+        bhms_coll_flag, wd_mass_lim, rtmsflag, maltsev_mode;
+} flags_;
+extern struct { double don_lim, acc_lim[2], Mbh_initial, smt_periastron_check; } mtvars_;
+extern struct { int ceflag, cekickflag, cemergeflag, cehestarflag, ussn; } ceflags_;
 extern struct { int pisn_track[2]; } trackers_;
 extern struct { double zsun; } metvars_;
-extern struct { double don_lim, acc_lim; } mtvars_; 
-
-extern struct { double neta, bwind, hewind, beta, xi, acc2, epsnov, eddfac, gamma; } windvars_;
-extern struct { double qcrit_array[16], alpha1, lambdaf; } cevars_;
+extern struct {
+    double neta, bwind, hewind, beta, xi, acc2, epsnov, eddfac, gamma;
+    int LBV_flag;
+} windvars_;
+extern struct { double qcrit_array[16], alpha1[2], lambdaf; } cevars_;
 extern struct { double bconst, ck; } magvars_;
 extern struct { double rejuv_fac; } mixvars_;
-extern struct { double natal_kick_array[5][2], sigma, sigmadiv, bhsigmafrac, polar_kick_angle, pisn, ecsn, ecsn_mlow, bhspinmag, mxns, rembar_massloss; int kickflag;} snvars_;
+extern struct {
+    double natal_kick_array[5][2];
+    double sigma, sigmadiv, bhsigmafrac;
+    double polar_kick_angle;
+    double pisn, ecsn, ecsn_mlow;
+    double bhspinmag, mxns, rembar_massloss;
+    double mc_he[2], mc_co[2];
+    double mm_mu_ns, mm_mu_bh, maltsev_fallback, maltsev_pf_prob;
+    int kickflag, fryer_mass_limit;
+    double ppi_co_shift, ppi_extra_ml;
+    double fryer_fmix, fryer_mcrit_nsbh;
+} snvars_;
 extern struct { double fprimc_array[16]; } tidalvars_;
 extern struct { double pts1, pts2, pts3; } points_;
 extern struct { double dmmax, drmax; } tstepc_;
-extern struct { double scm[14][50000], spp[3][20]; } single_;
+extern struct { double scm[16][50000], spp[20][25]; } single_;
 extern struct { double bcm[BCM_NUM_COLUMNS][BCM_NUM_ROWS], bpp[BPP_NUM_COLUMNS][BPP_NUM_ROWS]; } binary_;
-extern struct { int n_col_bpp,col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm,col_inds_bcm[BCM_NUM_COLUMNS]; } col_;
+extern struct { int n_col_bpp, col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm, col_inds_bcm[BCM_NUM_COLUMNS]; } col_;
 extern struct { double merger; long int id1_pass, id2_pass; long int using_cmc; } cmcpass_;
 
 /* setters */
