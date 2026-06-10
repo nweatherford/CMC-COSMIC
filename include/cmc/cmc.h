@@ -860,11 +860,16 @@ typedef struct{
 * @brief stellar evolution (0=off, 1=on)
 */
 	int STELLAR_EVOLUTION;
-#define PARAMDOC_TIDAL_TREATMENT "choose the tidal cut-off criteria (0=radial criteria, 1=Giersz energy criteria)"
+#define PARAMDOC_TIDAL_TREATMENT "choose the tidal cut-off criterion (0=apocenter criterion, 1=Giersz alpha energy criterion, 2=raw energy criterion)"
 /**
-* @brief choose the tidal cut-off criteria (0=radial criteria, 1=Giersz energy criteria)
+* @brief choose the tidal cut-off criterion (0=apocenter criterion, 1=Giersz alpha energy criterion, 2=raw energy criterion)
 */
 	int TIDAL_TREATMENT;
+#define PARAMDOC_RTIDAL_COEFF "adjust the apocenter escape criterion (if TIDAL_TREATMENT==0) by a coefficient RTIDAL_COEFF so that escape occurs when r_apo >= RTIDAL_COEFF * Rtidal"
+/**
+* @brief adjust the apocenter escape criterion (if TIDAL_TREATMENT==0) by a coefficient RTIDAL_COEFF so that escape occurs when r_apo >= RTIDAL_COEFF * Rtidal
+*/
+	int RTIDAL_COEFF;
 #define PARAMDOC_SS_COLLISION "perform physical stellar collisions (0=off, 1=on)"
 /**
 * @brief perform physical stellar collisions (0=off, 1=on)
