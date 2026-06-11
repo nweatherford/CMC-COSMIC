@@ -559,12 +559,12 @@ void tidally_strip_stars(void) {
 * @param phi_zero potential at zero
 */
 void remove_star(long j, double phi_rtidal, double phi_zero) {
-	double m, r, phi_rtidal_without_self_gravity;
+	double m, r, Ecrit, phi_rtidal_without_self_gravity;
 	long k=0;
 	int g_j = get_global_idx(j);
 	
     /* Newlin (June 10, 2026): Compute Ecrit to store as a new column (last column) in the escfile */
-    phi_rtidal_without_self_gravity = phi_rtidal + MPI_PHI_S(Rtidal, g_i);
+    phi_rtidal_without_self_gravity = phi_rtidal + MPI_PHI_S(Rtidal, g_j);
 	if (TIDAL_TREATMENT == 0){
 		Ecrit = 1.5 * phi_rtidal_without_self_gravity;
 	} else if (TIDAL_TREATMENT == 1){
