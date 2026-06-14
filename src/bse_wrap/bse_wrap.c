@@ -38,7 +38,7 @@ void bse_zcnsts(double *z, double *zpars)
 void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum,
 		double *mc, double *rc, double *menv, double *renv, double *ospin,
 		double *epoch, double *tms, double *tphys, double *tphysf,
-		double *dtp, double *z, double *zpars, double *kick_info, double *bhspin) {
+		double *dtp, double *z, double *zpars, double kick_info[19][2], double *bhspin) {
   bse_binary tempbinary;
 
   tempbinary.bse_mass0[0] = *mass;
@@ -138,7 +138,7 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
 		double *massc, double *radc, double *menv, double *renv, double *ospin,
                 double *B_0, double *bacc, double *tacc,
 		double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin)
+		double *z, double *zpars, double *tb, double *ecc, double kick_info[19][2], double *bhspin)
 {
     int i, j;
     //double kick_info[19][2];
@@ -191,7 +191,7 @@ void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, dou
 		       double *massc, double *radc, double *menv, double *renv, double *ospin,
                        double *B_0, double *bacc, double *tacc,
 		       double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		       double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin)
+		       double *z, double *zpars, double *tb, double *ecc, double kick_info[19][2], double *bhspin)
 {
   int mykstar[2], mykstarprev[2], kattempt=-1, j, i;
   double mymass0[2], mymass[2], myrad[2], mylum[2], mymassc[2], myradc[2], mymenv[2], myrenv[2], myospin[2], myB_0[2], mybacc[2], mytacc[2], myepoch[2];
@@ -424,7 +424,7 @@ void bse_hrdiag(double *mass, double *aj, double *mt, double *tm, double *tn, do
      replace vs with kick_info to be more consistent with the kick output from COSMIC (CSY)
 */
 void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep,
-	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *kick_info)
+	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double kick_info[19][2])
 {
   /* INPUTS
      kw = stellar type
@@ -493,7 +493,7 @@ void bse_mix(double *mass, double *mt, double *aj, int *kw, double *zpars, doubl
 * @param ecsnp ?
 * @param ecsn_mlow ?
 */
-void bse_comenv(bse_binary *tempbinary, double *zpars, double *kick_info, int *fb)
+void bse_comenv(bse_binary *tempbinary, double *zpars, double kick_info[19][2], int *fb)
 		//double *M0, double *M, double *MC, double *AJ, double *OSPIN, int *KW,
 		//                double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2,
                 //double *ZPARS, double *ECC, double *SEP, double *PORB,

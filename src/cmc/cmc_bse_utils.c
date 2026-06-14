@@ -259,7 +259,7 @@ void compress_binary(star_t *bincom, binary_t *bin) {
 * @param ecsn_mlow ?
 * @param ST_tide ?
 */
-void cmc_bse_comenv(binary_t *tempbinary, double cmc_l_unit, double RbloodySUN, double *zpars, double *kick_info, int *fb)
+void cmc_bse_comenv(binary_t *tempbinary, double cmc_l_unit, double RbloodySUN, double *zpars, double kick_info[19][2], int *fb)
 		//double *M0, double *M, double *MC, double *AJ, double *OSPIN, int *KW, 
 		//                double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2,
                 //double *ZPARS, double *ECC, double *SEP, double *PORB,  

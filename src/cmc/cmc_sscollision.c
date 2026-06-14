@@ -1109,7 +1109,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
 * @param kick_info ?
 * @param s rng state
 */
-void merge_two_stars(star_t *star1, star_t *star2, star_t *merged_star, double *kick_info, struct rng_t113_state* s) {
+void merge_two_stars(star_t *star1, star_t *star2, star_t *merged_star, double kick_info[19][2], struct rng_t113_state* s) {
 	double tphysf, dtp, age, temp_rad, bseaj[2];
 	//double vsaddl[12], 
 	double tm, tn, tscls[20], lums[10], GB[10], k2, lamb_val;

@@ -840,7 +840,7 @@ void write_stellar_data(void){
 * @param kick_info ?
 * @param tphysf ?
 */
-void handle_bse_outcome(long k, long kb, double *kick_info, double tphysf, int kprev0, int kprev1, double *VKO)
+void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf, int kprev0, int kprev1, double *VKO)
 {
   int j, jj;
   long knew=0, knewp=0, convert;
