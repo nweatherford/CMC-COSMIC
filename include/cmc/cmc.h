@@ -1923,7 +1923,7 @@ void stellar_evolution_init(void);
 void restart_stellar_evolution(void);
 void do_stellar_evolution(gsl_rng *rng);
 void write_stellar_data(void);
-void handle_bse_outcome(long k, long kb, double *vs, double tphysf, int kprev0, int kprev1, double *VKO);
+void handle_bse_outcome(long k, long kb, double *kick_info, double tphysf, int kprev0, int kprev1, double *VKO);
 void cp_binmemb_to_star(long k, int kbi, long knew);
 void cp_SEvars_to_newstar(long oldk, int kbi, long knew);
 void cp_m_to_newstar(long oldk, int kbi, long knew);
@@ -1934,7 +1934,7 @@ void cp_starSEvars_to_binmember(star_t instar, long binindex, int bid);
 void cp_starmass_to_binmember(star_t instar, long binindex, int bid);
 void integrate_a_e_peters_eqn(long binidx);
 double r_of_m(double M);
-void cmc_bse_comenv(binary_t *tempbinary, double cmc_l_unit, double RbloodySUN, double *zpars, double *vs, int *fb);
+void cmc_bse_comenv(binary_t *tempbinary, double cmc_l_unit, double RbloodySUN, double *zpars, double *kick_info, int *fb);
 
 /* Fewbody stuff */
 void destroy_obj(long i);
@@ -1990,7 +1990,7 @@ void zero_star(long j);
 void zero_binary(long j);
 
 void sscollision_do(long k, long kp, double rperi, double w[4], double W, double rcm, double vcm[4], gsl_rng *rng);
-void merge_two_stars(star_t *star1, star_t *star2, star_t *merged_star, double *vs, struct rng_t113_state* s);
+void merge_two_stars(star_t *star1, star_t *star2, star_t *merged_star, double *kick_info, struct rng_t113_state* s);
 double coll_CE(double Mrg, double Mint, double Mwd, double Rrg, double vinf);
 double coll_CE_twogiant(double M1, double M2, double Mc1, double Mc2, double R1, double R2, double vinf);
 void NS_TDE_spinup(double Mns, double Mstar, double Rstar, double Kstar, double B_old, double ospin_old, double TDE_arr[]);

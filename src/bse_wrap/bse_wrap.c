@@ -38,7 +38,7 @@ void bse_zcnsts(double *z, double *zpars)
 void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum,
 		double *mc, double *rc, double *menv, double *renv, double *ospin,
 		double *epoch, double *tms, double *tphys, double *tphysf,
-		double *dtp, double *z, double *zpars, double *vs, double *bhspin) {
+		double *dtp, double *z, double *zpars, double *kick_info, double *bhspin) {
   bse_binary tempbinary;
 
   tempbinary.bse_mass0[0] = *mass;
@@ -81,7 +81,7 @@ void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum
       &(tempbinary.bse_radc[0]), &(tempbinary.bse_menv[0]), &(tempbinary.bse_renv[0]),
       &(tempbinary.bse_ospin[0]), &(tempbinary.bse_B_0[0]), &(tempbinary.bse_bacc[0]), &(tempbinary.bse_tacc[0]),
       &(tempbinary.bse_epoch[0]), &(tempbinary.bse_tms[0]),
-      tphys, tphysf, dtp, z, zpars, &(tempbinary.bse_tb), &(tempbinary.e), vs, &(tempbinary.bse_bhspin[0]));
+      tphys, tphysf, dtp, z, zpars, &(tempbinary.bse_tb), &(tempbinary.e), kick_info, &(tempbinary.bse_bhspin[0]));
 
   *mass = tempbinary.bse_mass0[0];
   *kw = tempbinary.bse_kw[0];
@@ -123,7 +123,7 @@ void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum
 * @param zpars ?
 * @param tb ?
 * @param ecc ?
-* @param vs ?
+* @param kick_info ?
 */
 /* Last-write-wins index of the most recent valid bcm/bpp row, as reported
  * by evolv2's out args. Replaces the legacy "walk until tphys<0 sentinel"
@@ -138,21 +138,12 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
 		double *massc, double *radc, double *menv, double *renv, double *ospin,
                 double *B_0, double *bacc, double *tacc,
 		double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		double *z, double *zpars, double *tb, double *ecc, double *vs, double *bhspin)
+		double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin)
 {
-    /* must null out vs, since SSE/BSE is not designed to return it and hence doesn't null it out */
-    /*  vs[0] = 0.0;
-    vs[1] = 0.0;
-    vs[2] = 0.0; */
-	int i, j;
-    for(i=0;i<20;i++) {
-        vs[i] = 0.0;
-    }
+    int i, j;
+    //double kick_info[19][2];
 
-    double kick_info[18][2];
-
-
-    for(i=0;i<18;i++) {
+    for(i=0;i<19;i++) {
         for(j=0;j<2;j++){
             kick_info[i][j] = 0.0;
         }
@@ -162,10 +153,8 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
      * cached into bse_last_*_index for handle_bse_outcome via getters. */
     int bpp_index_out = 0;
     int bcm_index_out = 0;
-    double kick_info_out[18][2];
-    for (i = 0; i < 18; i++) { kick_info_out[i][0] = 0.0; kick_info_out[i][1] = 0.0; }
 
-    evolv2_(kstar,mass,tb,ecc,z,tphysf,dtp,mass0,rad,lum,massc,radc, menv,renv,ospin,B_0,bacc,tacc,epoch,tms,bhspin,tphys,zpars,vs, *kick_info, &bpp_index_out, &bcm_index_out, *kick_info_out);
+    evolv2_(kstar,mass,tb,ecc,z,tphysf,dtp,mass0,rad,lum,massc,radc, menv,renv,ospin,B_0,bacc,tacc,epoch,tms,bhspin,tphys,zpars, kick_info, &bpp_index_out, &bcm_index_out);
 
     bse_last_bcm_index = bcm_index_out;
     bse_last_bpp_index = bpp_index_out;
@@ -196,17 +185,17 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
 * @param zpars ?
 * @param tb ?
 * @param ecc ?
-* @param vs ?
+* @param kick_info ?
 */
 void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, double *lum,
 		       double *massc, double *radc, double *menv, double *renv, double *ospin,
                        double *B_0, double *bacc, double *tacc,
 		       double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		       double *z, double *zpars, double *tb, double *ecc, double *vs, double *bhspin)
+		       double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin)
 {
   int mykstar[2], mykstarprev[2], kattempt=-1, j, i;
   double mymass0[2], mymass[2], myrad[2], mylum[2], mymassc[2], myradc[2], mymenv[2], myrenv[2], myospin[2], myB_0[2], mybacc[2], mytacc[2], myepoch[2];
-  double mytms[2], mytphys, mytphysf, mydtp, tphystried, mytb, myecc, myvs[20], mybhspin[2];
+  double mytms[2], mytphys, mytphysf, mydtp, tphystried, mytb, myecc, mykick_info[19][2], mybhspin[2];
 
   //  do {
     kattempt++;
@@ -243,7 +232,7 @@ void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, dou
     mytb = *tb;
     myecc = *ecc;
     bse_evolv2(mykstar, mymass0, mymass, myrad, mylum, mymassc, myradc, mymenv, myrenv, myospin, myB_0, mybacc, mytacc,
-	       myepoch, mytms, &mytphys, &mytphysf, &mydtp, z, zpars, &mytb, &myecc, myvs, mybhspin);
+	       myepoch, mytms, &mytphys, &mytphysf, &mydtp, z, zpars, &mytb, &myecc, mykick_info, mybhspin);
     /*
   } while ((isnan(myrad[0]) || mymassc[0] < 0.0 || mymass[0] < 0.0 || mymass0[0] < 0.0 || mylum[0] < 0.0 ||
 	    isnan(myrad[1]) || mymassc[1] < 0.0 || mymass[1] < 0.0 || mymass0[1] < 0.0 || mylum[1] < 0.0) && tphystried > 0.0);
@@ -321,9 +310,14 @@ void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, dou
 /*  vs[0] = myvs[0];
   vs[1] = myvs[1];
   vs[2] = myvs[2];*/
-  for(i=0;i<20;i++) {
-      vs[i] = myvs[i];
-  }
+  //for(i=0;i<20;i++) {
+  //    vs[i] = myvs[i];
+  //}
+  for(i=0;i<19;i++) {
+      for(j=0;j<2;j++){
+          kick_info[i][j] = mykick_info[i][j];
+      }
+  }  
 }
 
 
@@ -427,9 +421,10 @@ void bse_hrdiag(double *mass, double *aj, double *mt, double *tm, double *tn, do
 * @param vs
      old -> vs = velocity (3) of center of mass if bound, relative velocity at infinity if unbound
      new -> vs = three possible sets of velocities (3). Is an array of 12, correctly accounts for
+     replace vs with kick_info to be more consistent with the kick output from COSMIC (CSY)
 */
 void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep,
-	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *vs)
+	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *kick_info)
 {
   /* INPUTS
      kw = stellar type
@@ -456,18 +451,19 @@ void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double 
      output into one of the 3 velocity slots.
      Another 3 values within the array show which star (1 or 2) went SN for that kick.
      This helps in differentiating which kick goes where.
+     replace vs with kick_info. kick_info contains the same information, just different output structure. (CSY)
    */
   /* LOGICAL used by COSMIC, but not needed here */
     int disrupt=0;
-    double kick_info[18][2];
-    int i, j ;
+    //double kick_info[19][2];
+    //int i, j ;
 
-    for(i=0;i<18;i++) {
-        for(j=0;j<2;j++){
-            kick_info[i][j] = 0.0;
-        }
-    }
-    kick_(kw, m1, m1n, m2, ecc, sep, jorb, vk, snstar, r2, fallback, &snvars_.sigma, *kick_info, &disrupt, vs);
+    //for(i=0;i<19;i++) {
+    //    for(j=0;j<2;j++){
+    //        kick_info[i][j] = 0.0;
+    //    }
+    //}
+    kick_(kw, m1, m1n, m2, ecc, sep, jorb, vk, snstar, r2, fallback, &snvars_.sigma, kick_info, &disrupt);
 }
 
 /**
@@ -492,12 +488,12 @@ void bse_mix(double *mass, double *mt, double *aj, int *kw, double *zpars, doubl
 *
 * @param tempbinary ?
 * @param zpars ?
-* @param vs ?
+* @param kick_info ?
 * @param fb ?
 * @param ecsnp ?
 * @param ecsn_mlow ?
 */
-void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
+void bse_comenv(bse_binary *tempbinary, double *zpars, double *kick_info, int *fb)
 		//double *M0, double *M, double *MC, double *AJ, double *OSPIN, int *KW,
 		//                double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2,
                 //double *ZPARS, double *ECC, double *SEP, double *PORB,
@@ -510,13 +506,13 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   int jp=0,switchedCE=0, disrupt=0;
   double tphys=0, evolve_type=0;
   double tms[2], rad[2], lumin[2], B_0[2], bacc[2], tacc[2], epoch[2], menv_bpp[2], renv_bpp[2];
-  double kick_info[18][2];
+  //double kick_info[18][2];
 
-  for(i=0;i<18;i++) {
-      for(j=0;j<2;j++){
-          kick_info[i][j] = 0.0;
-      }
-  }
+  //for(i=0;i<18;i++) {
+  //    for(j=0;j<2;j++){
+  //        kick_info[i][j] = 0.0;
+  //    }
+  //}
 
   k3 = 0.21;
   PI = acos(-1.0);
@@ -528,7 +524,7 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   //  ST_tide tells code if StarTrack-like tides are assumed in code.
   //
   //  OUTPUTS
-  //  Final masses etc, ecc, sep, Porb will be modified in CE evolution, vs is an array that might be filled if a NS is formed, formations tell
+  //  Final masses etc, ecc, sep, Porb will be modified in CE evolution, kick_info is an array that might be filled if a NS is formed, formations tell
   //  the type of SN that occured (if one occured).
   //
   //
@@ -575,8 +571,13 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   //     double *mc, double *rc, double *menv, double *renv, double *k2, int *ST_tide, double *ecsnp, double *ecsn_mlow)
   //
   vk = 0.0;
-  for(i=0;i<20;i++) {
-      vs[i] = 0.0;
+  //for(i=0;i<20;i++) {
+  //    vs[i] = 0.0;
+  //}
+  for(i=0;i<19;i++) {
+      for(j=0;j<2;j++){
+          kick_info[i][j] = 0.0;
+      }
   }
   ////
   //// Why we are here:
@@ -593,7 +594,7 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double *vs, int *fb)
   double comenv_deltam_1 = 0.0, comenv_deltam_2 = 0.0, comenv_dtm = 0.0;
   comenv_(&((*tempbinary).bse_mass0[0]), &((*tempbinary).bse_mass[0]), &((*tempbinary).bse_massc[0]), &(AJ[0]), &JSPIN1, &((*tempbinary).bse_kw[0]),
 	  &((*tempbinary).bse_mass0[1]), &((*tempbinary).bse_mass[1]), &((*tempbinary).bse_massc[1]), &(AJ[1]), &JSPIN2, &((*tempbinary).bse_kw[1]),
-	  zpars, &((*tempbinary).e), &((*tempbinary).a), &(JORB), &COEL, &star1, &star2, &vk, *kick_info, &((*tempbinary).bse_bcm_formation[0]), &((*tempbinary).bse_bcm_formation[1]), &snvars_.sigma, &((*tempbinary).bse_bhspin[0]),&((*tempbinary).bse_bhspin[1]),&binstate,&mergertype,&jp,&tphys,&switchedCE,rad,tms,&evolve_type,&disrupt,lumin,B_0,bacc,tacc,epoch,menv_bpp,renv_bpp,vs,&comenv_deltam_1,&comenv_deltam_2,&comenv_dtm);
+	  zpars, &((*tempbinary).e), &((*tempbinary).a), &(JORB), &COEL, &star1, &star2, &vk, kick_info, &((*tempbinary).bse_bcm_formation[0]), &((*tempbinary).bse_bcm_formation[1]), &snvars_.sigma, &((*tempbinary).bse_bhspin[0]),&((*tempbinary).bse_bhspin[1]),&binstate,&mergertype,&jp,&tphys,&switchedCE,rad,tms,&evolve_type,&disrupt,lumin,B_0,bacc,tacc,epoch,menv_bpp,renv_bpp,&comenv_deltam_1,&comenv_deltam_2,&comenv_dtm);
   //printf("kw1i=%d kw2i=%d m1f=%g m2f=%g r1f=%g r2f=%g ", (*tempbinary).bse_kw[0], (*tempbinary).bse_kw[1], (*tempbinary).bse_mass[0], (*tempbinary).bse_mass[1], (*tempbinary).bse_radius[0], (*tempbinary).bse_radius[1]);
   //printf("\n");
   ////

@@ -139,8 +139,8 @@ void evolv2_(int *kstar, double *mass, double *tb, double *ecc, double *z,
 	     double *tphysf, double *dtp, double *mass0, double *rad, double *lum,
              double *massc, double *radc, double *menv, double *renv,
 	     double *ospin, double *B_0, double *bacc, double *tacc, double *epoch,
-	     double *tms, double *bhspin, double *tphys, double *zpars, double *vs, double *kick_info,
-	     int *bpp_index_out, int *bcm_index_out, double *kick_info_out);
+	     double *tms, double *bhspin, double *tphys, double *zpars, double *kick_info,
+	     int *bpp_index_out, int *bcm_index_out);
 void instar_(void);
 float ran3_(int *idum);
 void star_(int *kw, double *mass, double *mt, double *tm, double *tn, double *tscls,
@@ -149,10 +149,10 @@ void hrdiag_(double *mass, double *aj, double *mt, double *tm, double *tn, doubl
 	     double *lums, double *GB, double *zpars, double *r, double *lum, int *kw, 
 	     double *mc, double *rc, double *menv, double *renv, double *k2,  double *bhspin, int *kidx);
 void kick_(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep, 
-	   double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *sigmahold, double *kick_info, int *disrupt, double *vs);
+	   double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *sigmahold, double *kick_info, int *disrupt);
 void mix_(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin, double *dtm);
 // note: these function names only work if in lowercase here, even though FORTRAN versions in uppercase.
-void comenv_(double *M01, double *M1, double *MC1, double *AJ1, double *JSPIN1, int *KW1, double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2, double *ZPARS, double *ECC, double *SEP, double *JORB, int *COEL, int *star1, int *star2, double *vk, double *kick_info, int *formation1, int *formation2, double *sigmahold, double *bhspin1, double *bhspin2, int *binstate, int *mergertype, int *jp, double *tphys,int *swtichedCE, double *rad, double *tms, double *evolve_type, int *disrupt, double * lumin, double * B_0, double * bacc, double * tacc, double * epoch, double * menv_bpp, double * renv_bpp, double *bkick, double *deltam_1, double *deltam_2, double *dtm);
+void comenv_(double *M01, double *M1, double *MC1, double *AJ1, double *JSPIN1, int *KW1, double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2, double *ZPARS, double *ECC, double *SEP, double *JORB, int *COEL, int *star1, int *star2, double *vk, double *kick_info, int *formation1, int *formation2, double *sigmahold, double *bhspin1, double *bhspin2, int *binstate, int *mergertype, int *jp, double *tphys,int *swtichedCE, double *rad, double *tms, double *evolve_type, int *disrupt, double * lumin, double * B_0, double * bacc, double * tacc, double * epoch, double * menv_bpp, double * renv_bpp, double *deltam_1, double *deltam_2, double *dtm);
 
 
 /* wrapped BSE functions */
@@ -161,16 +161,16 @@ void bse_evolv2(int *kstar, double *mass0, double *mass, double *rad, double *lu
 		double *massc, double *radc, double *menv, double *renv, double *ospin,
                 double *B_0, double *bacc, double *tacc,
 		double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		double *z, double *zpars, double *tb, double *ecc, double *vs, double *bhspin);
+		double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin);
 void bse_evolve_single(int *kw, double *mass, double *mt, double *r, double *lum,
                 double *mc, double *rc, double *menv, double *renv, double *ospin,
                 double *epoch, double *tms, double *tphys, double *tphysf,
-                double *dtp, double *z, double *zpars, double *vs, double *bhspin);
+                double *dtp, double *z, double *zpars, double *kick_info, double *bhspin);
 void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, double *lum, 
 		       double *massc, double *radc, double *menv, double *renv, double *ospin,
                        double *B_0, double *bacc, double *tacc,
 		       double *epoch, double *tms, double *tphys, double *tphysf, double *dtp,
-		       double *z, double *zpars, double *tb, double *ecc, double *vs, double *bhspin);
+		       double *z, double *zpars, double *tb, double *ecc, double *kick_info, double *bhspin);
 void bse_instar(void);
 void bse_star(int *kw, double *mass, double *mt, double *tm, double *tn, double *tscls, 
 	      double *lums, double *GB, double *zpars);
@@ -178,10 +178,10 @@ void bse_hrdiag(double *mass, double *aj, double *mt, double *tm, double *tn, do
 		double *lums, double *GB, double *zpars, double *r, double *lum, int *kw, 
 		double *mc, double *rc, double *menv, double *renv, double *k2, double *bhspin);
 void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep, 
-	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *vs);
+	      double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *kick_info);
 void bse_mix(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin);
 void bse_comenv(bse_binary *binary, double *zpars,
-                double *vs, int *fb);
+                double *kick_info, int *fb);
 
 /* structs to access BSE common blocks.
  * Field order/types MUST match the COMMON declarations in COSMIC's
