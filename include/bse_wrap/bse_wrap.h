@@ -148,8 +148,9 @@ void star_(int *kw, double *mass, double *mt, double *tm, double *tn, double *ts
 void hrdiag_(double *mass, double *aj, double *mt, double *tm, double *tn, double *tscls, 
 	     double *lums, double *GB, double *zpars, double *r, double *lum, int *kw, 
 	     double *mc, double *rc, double *menv, double *renv, double *k2,  double *bhspin, int *kidx);
-void kick_(int *kw, double *m1, double *m1n, double *m2, double *ecc, double *sep, 
-	   double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *sigmahold, double kick_info[19][2], int *disrupt);
+void kick_(int *kw, double *m1, double *m1c, double *m1n, double *m2, double *ecc, double *sep,
+	   double *jorb, double *vk, int *snstar, double *r2, double *fallback, double *sigmahold,
+	   double kick_info[19][2], int *disrupt, double *tphys);
 void mix_(double *mass, double *mt, double *aj, int *kw, double *zpars, double *bhspin, double *dtm);
 // note: these function names only work if in lowercase here, even though FORTRAN versions in uppercase.
 void comenv_(double *M01, double *M1, double *MC1, double *AJ1, double *JSPIN1, int *KW1, double *M02, double *M2, double *MC2, double *AJ2, double *JSPIN2, int *KW2, double *ZPARS, double *ECC, double *SEP, double *JORB, int *COEL, int *star1, int *star2, double *vk, double kick_info[19][2], int *formation1, int *formation2, double *sigmahold, double *bhspin1, double *bhspin2, int *binstate, int *mergertype, int *jp, double *tphys,int *swtichedCE, double *rad, double *tms, double *evolve_type, int *disrupt, double * lumin, double * B_0, double * bacc, double * tacc, double * epoch, double * menv_bpp, double * renv_bpp, double *deltam_1, double *deltam_2, double *dtm);
@@ -226,7 +227,8 @@ extern struct { double pts1, pts2, pts3; } points_;
 extern struct { double dmmax, drmax; } tstepc_;
 extern struct { double scm[16][50000], spp[20][25]; } single_;
 extern struct { double bcm[BCM_NUM_COLUMNS][BCM_NUM_ROWS], bpp[BPP_NUM_COLUMNS][BPP_NUM_ROWS]; } binary_;
-extern struct { int n_col_bpp, col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm, col_inds_bcm[BCM_NUM_COLUMNS]; } col_;
+extern struct { int n_col_bpp, col_inds_bpp[BCM_NUM_COLUMNS], n_col_bcm, col_inds_bcm[BCM_NUM_COLUMNS], bpp_ind; } col_;
+extern struct { int bcm_err; } er_flags_;
 extern struct { double merger; long int id1_pass, id2_pass; long int using_cmc; } cmcpass_;
 
 /* COSMIC 4.0 stellar-evolution engine COMMON blocks.

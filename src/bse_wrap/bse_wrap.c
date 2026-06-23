@@ -455,15 +455,9 @@ void bse_kick(int *kw, double *m1, double *m1n, double *m2, double *ecc, double 
    */
   /* LOGICAL used by COSMIC, but not needed here */
     int disrupt=0;
-    //double kick_info[19][2];
-    //int i, j ;
+    double tphys=0.0;
 
-    //for(i=0;i<19;i++) {
-    //    for(j=0;j<2;j++){
-    //        kick_info[i][j] = 0.0;
-    //    }
-    //}
-    kick_(kw, m1, m1n, m2, ecc, sep, jorb, vk, snstar, r2, fallback, &snvars_.sigma, kick_info, &disrupt);
+    kick_(kw, m1, m1n, m1n, m2, ecc, sep, jorb, vk, snstar, r2, fallback, &snvars_.sigma, kick_info, &disrupt, &tphys);
 }
 
 /**
@@ -504,7 +498,7 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double kick_info[19][2], 
   double bhspin[2];
   int binstate=0, mergertype=0;
   int jp=0,switchedCE=0, disrupt=0;
-  double tphys=0, evolve_type=0;
+  double tphys, evolve_type=0;
   double tms[2], rad[2], lumin[2], B_0[2], bacc[2], tacc[2], epoch[2], menv_bpp[2], renv_bpp[2];
   //double kick_info[18][2];
 
@@ -579,17 +573,7 @@ void bse_comenv(bse_binary *tempbinary, double *zpars, double kick_info[19][2], 
           kick_info[i][j] = 0.0;
       }
   }
-  ////
-  //// Why we are here:
-  ////
-  //  COMENV_((tempbinary.bse_mass0[0]), (tempbinary.bse_mass[0]), (tempbinary.bse_massc[0]), &(AJ[0]), &JSPIN1, (tempbinary.bse_kw[0]),
-  //	  (tempbinary.bse_mass0[1]), (tempbinary.bse_mass[1]), (tempbinary.bse_massc[1]), &(AJ[1]), &JSPIN2, (tempbinary.bse_kw[1]),
-  //	  zpars, (tempbinary.e), (tempbinary.a), &(JORB), &COEL, &star1, &star2, &vk, fb, vs, ecsnp, ecsn_mlow, &(tempbinary.bse_bcm_formation[0]), &(tempbinary.bse_bcm_formation[1]), ST_tide);
-  //printf("bse_wrap ZPARS: \n");
-  //for(iii=0;iii<20; iii++){
-  //  printf("%g ", zpars[iii]);
-  //}
-  //printf(" kw1i=%d kw2i=%d m1i=%g m2i=%g r1i=%g r2i=%g epoch1=%g epoch2=%g ", (*tempbinary).bse_kw[0], (*tempbinary).bse_kw[1], (*tempbinary).bse_mass[0], (*tempbinary).bse_mass[1], (*tempbinary).bse_radius[0], (*tempbinary).bse_radius[1], (*tempbinary).bse_epoch[0], (*tempbinary).bse_epoch[1]);
+  tphys = (*tempbinary).bse_tphys;
   /* deltam_1, deltam_2, dtm are METISSE-only; SSE path ignores them. */
   double comenv_deltam_1 = 0.0, comenv_deltam_2 = 0.0, comenv_dtm = 0.0;
   comenv_(&((*tempbinary).bse_mass0[0]), &((*tempbinary).bse_mass[0]), &((*tempbinary).bse_massc[0]), &(AJ[0]), &JSPIN1, &((*tempbinary).bse_kw[0]),
