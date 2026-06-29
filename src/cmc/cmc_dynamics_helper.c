@@ -1954,7 +1954,7 @@ void binint_do(long k, long kp, double rperi, double w[4], double W, double rcm,
 
 					if(kick_info[6][0]!=0.0){
 						VK0 = sqrt(sqr(kick_info[6][0])+sqr(kick_info[7][0])+sqr(kick_info[8][0]));
-						dprintf("dynhelp_merge1: TT=%.18g kick_info[0][0]=%.18g kick_info[6][0]=%.18g kick_info[7][0]=%.18g kick_info[8][0]=%.18g VK0=%.18g star_id=%ld\n",TotalTime,kick_info[0][0],kick_info[6][0],kick_info[7][0],kcik_info[8][0],VK0,star[knew].id);
+						dprintf("dynhelp_merge1: TT=%.18g kick_info[0][0]=%.18g kick_info[6][0]=%.18g kick_info[7][0]=%.18g kick_info[8][0]=%.18g VK0=%.18g star_id=%ld\n",TotalTime,kick_info[0][0],kick_info[6][0],kick_info[7][0],kick_info[8][0],VK0,star[knew].id);
 					}
 					
 					/* log collision */
