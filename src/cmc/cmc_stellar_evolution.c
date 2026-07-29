@@ -322,11 +322,12 @@ void stellar_evolution_init(void){
       DMse -= star_m[g_k] * madhoc;
       /* birth kicks */
       if (kick_info[2][0] != 0.0) {
-        //dprintf("birth kick of %f km/s\n", kick_info[2][0]);
+        fprintf(stderr, "DEBUG 0: birth kick of %f km/s\n", kick_info[2][0]);
+        fflush(stderr);
       }
       star[k].vr += kick_info[8][0] * 1.0e5 / (units.l/units.t);
 
-      vt_add_kick(&(star[k].vt),kick_info[7][0],kick_info[6][0], curr_st);
+      vt_add_kick(&(star[k].vt),kick_info[6][0],kick_info[7][0], curr_st);
       set_star_EJ(k);
     } else if (star[k].binind > 0) { /* binary */
       star[k].se_k = NOT_A_STAR; /* just for safety */
@@ -363,6 +364,8 @@ void stellar_evolution_init(void){
       bse_set_id1_pass(binary[kb].id1);
       bse_set_id2_pass(binary[kb].id2);
       bse_set_taus113state(*curr_st, 0);
+      
+     
       bse_evolv2(&(binary[kb].bse_kw[0]), &(binary[kb].bse_mass0[0]), &(binary[kb].bse_mass[0]), &(binary[kb].bse_radius[0]), 
               &(binary[kb].bse_lum[0]), &(binary[kb].bse_massc[0]), &(binary[kb].bse_radc[0]), &(binary[kb].bse_menv[0]), 
               &(binary[kb].bse_renv[0]), &(binary[kb].bse_ospin[0]), 
@@ -372,7 +375,18 @@ void stellar_evolution_init(void){
               &(binary[kb].bse_tb), &(binary[kb].e), kick_info, &(binary[kb].bse_bhspin[0]));
       *curr_st=bse_get_taus113state();
 
+      if (binary[kb].bse_mass[0]>20. || binary[kb].bse_mass[1]>20.){
+          fprintf(stderr, "DEBUG 0 (binary): About to extract supernova kick physics from the array.\n");
+          fflush(stderr);
+      }
+
       handle_bse_outcome(k, kb, kick_info, tphysf, kprev0, kprev1, &VKO);
+
+      if (binary[kb].bse_mass[0]>20. || binary[kb].bse_mass[1]>20.){
+          fprintf(stderr, "DEBUG 0 (binary): Successfully processed kick physics without crashing.\n");
+          fflush(stderr);
+      }
+
     } else {
       eprintf("totally confused!\n");
       exit_cleanly(-1, __FUNCTION__);
@@ -412,6 +426,16 @@ void do_stellar_evolution(gsl_rng *rng)
 
   //MPI: The serial version runs till N_MAX_NEW+1 to account for the sentinel. But in the parallel version, there is no sentinel, so runs only till N_MAX_NEW.
   for(k=1; k<=clus.N_MAX_NEW; k++){ 
+    if (k == 7762) {
+        if (star[k].binind == 0) {
+            fprintf(stderr, "\n>>> Starting Star %ld (SINGLE) | Type: %d | Mass: %g\n", k, star[k].se_k, star[k].se_mt);
+        } else {
+            kb = star[k].binind;
+            fprintf(stderr, "\n>>> Starting Star %ld (BINARY) | Types: %d/%d | Masses: %g/%g\n", k, binary[kb].bse_kw[0], binary[kb].bse_kw[1], binary[kb].bse_mass[0], binary[kb].bse_mass[1]);
+        }
+        fflush(stderr);
+    }  
+
     int g_k = get_global_idx(k);
     if (star[k].binind == 0) { /* single star */
       tphysf = TotalTime / MEGA_YEAR;
@@ -477,6 +501,7 @@ void do_stellar_evolution(gsl_rng *rng)
           &(star[k].se_tphys), &tphysf, &dtp, &METALLICITY, zpars, vs);
          */
         bse_set_taus113state(*curr_st, 0);
+
         bse_evolv2_safely(&(tempbinary.bse_kw[0]), &(tempbinary.bse_mass0[0]), &(tempbinary.bse_mass[0]), 
             &(tempbinary.bse_radius[0]), &(tempbinary.bse_lum[0]), &(tempbinary.bse_massc[0]), 
             &(tempbinary.bse_radc[0]), &(tempbinary.bse_menv[0]), &(tempbinary.bse_renv[0]), 
@@ -484,6 +509,7 @@ void do_stellar_evolution(gsl_rng *rng)
             &(tempbinary.bse_epoch[0]), &(tempbinary.bse_tms[0]), 
             &(star[k].se_tphys), &tphysf, &dtp, &METALLICITY, zpars, 
             &(tempbinary.bse_tb), &(tempbinary.e), kick_info, &(tempbinary.bse_bhspin[0]));
+
         *curr_st=bse_get_taus113state();
 
         star[k].se_mass = tempbinary.bse_mass0[0];
@@ -503,6 +529,7 @@ void do_stellar_evolution(gsl_rng *rng)
         star[k].se_tms = tempbinary.bse_tms[0];
 	star[k].se_bhspin = tempbinary.bse_bhspin[0];
 
+
 		  /*Reset the MS timestep once we're done*/
 		  if(reduced_timestep == 1)
 			  bse_set_pts1(BSE_PTS1);
@@ -510,7 +537,7 @@ void do_stellar_evolution(gsl_rng *rng)
         star[k].rad = star[k].se_radius * RSUN / units.l;
         star_m[g_k] = star[k].se_mt * MSUN / units.mstar;
         DMse -= star_m[g_k] * madhoc;
-
+        
         /* extract info from scm array */ /* PK looping over a large number anticipating further changes */
 	        i = 1;
 	        j = 1;
@@ -556,14 +583,17 @@ void do_stellar_evolution(gsl_rng *rng)
           //           exit_cleanly(-1); //should only enter here if no bcm array entry, 
           //                               and that should only happen to uninteresting systems and/or outcomes.
         	}
+        
 
         /* birth kicks */
         if (kick_info[2][0] != 0.0) {
-          //dprintf("birth kick of %f km/s\n", kick_info[2][0]);
+          fprintf(stderr, "DEBUG 4: birth kick of %f km/s\n", kick_info[2][0]);
+          fflush(stderr);
         }
         star[k].vr += kick_info[8][0] * 1.0e5 / (units.l/units.t);
 
         vt_add_kick(&(star[k].vt),kick_info[6][0],kick_info[7][0], curr_st);
+        
         set_star_EJ(k);
         VKO = sqrt(kick_info[6][0]*kick_info[6][0] + kick_info[7][0]*kick_info[7][0] + kick_info[8][0]*kick_info[8][0]);
         /* birth kicks */
@@ -580,7 +610,7 @@ void do_stellar_evolution(gsl_rng *rng)
         /*  star[k].vt += sin(theta) * vk; */
         /*  set_star_EJ(k); */
         /* } */
-		
+        
 	/* PDK search for boom stuff and write pulsar data. */
 		//bcm_boom_search(k, vs, getCMCvalues);
 		if(WRITE_PULSAR_INFO)
@@ -661,6 +691,7 @@ void do_stellar_evolution(gsl_rng *rng)
                         }
 		} else{
 			bse_set_taus113state(*curr_st, 0);
+                        
 			bse_evolv2_safely(&(binary[kb].bse_kw[0]), &(binary[kb].bse_mass0[0]), &(binary[kb].bse_mass[0]), &(binary[kb].bse_radius[0]), 
 				&(binary[kb].bse_lum[0]), &(binary[kb].bse_massc[0]), &(binary[kb].bse_radc[0]), &(binary[kb].bse_menv[0]), 
 					&(binary[kb].bse_renv[0]), &(binary[kb].bse_ospin[0]),
@@ -668,6 +699,8 @@ void do_stellar_evolution(gsl_rng *rng)
 				&(binary[kb].bse_epoch[0]), &(binary[kb].bse_tms[0]), 
 				&(binary[kb].bse_tphys), &tphysf, &dtp, &METALLICITY, zpars, 
 				&(binary[kb].bse_tb), &(binary[kb].e), kick_info, &(binary[kb].bse_bhspin[0]));
+                        
+                        
 			*curr_st=bse_get_taus113state();
 		}
 
@@ -694,7 +727,7 @@ void do_stellar_evolution(gsl_rng *rng)
   /*EGP: Note that when we delete objects, we zero out some quantities like the IDs, but a lot of bse params are not, hence why only the IDs were affected. */
   long prev_id1 = binary[kb].id1;
   long prev_id2 = binary[kb].id2;
-
+       
 	handle_bse_outcome(k, kb, kick_info, tphysf, kprev0, kprev1, &VKO);
 
 	if (WRITE_BH_INFO) {
@@ -728,9 +761,13 @@ void do_stellar_evolution(gsl_rng *rng)
 	//handle_bse_outcome(k, kb, vs, tphysf, kprev0, kprev1);
       }
     }
+    
+    
     bh_count(k);
+    
   }
 
+  
   double tmpTimeStart = timeStartSimple();
   double temp = 0.0;
 
@@ -1024,9 +1061,9 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
             }        
             
             // Legacy Disrupted Math: Only track Star 1's columns (6-8) as a sum of squares
-            vko_sq += sqrt(kick_info[6][sn]*kick_info[6][sn] + 
-                           kick_info[7][sn]*kick_info[7][sn] + 
-                           kick_info[8][sn]*kick_info[8][sn]); 
+            vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
+                       kick_info[7][sn]*kick_info[7][sn] + 
+                       kick_info[8][sn]*kick_info[8][sn]); 
             
         }
     }

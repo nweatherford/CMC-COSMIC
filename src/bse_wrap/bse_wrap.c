@@ -318,6 +318,7 @@ void bse_evolv2_safely(int *kstar, double *mass0, double *mass, double *rad, dou
           kick_info[i][j] = mykick_info[i][j];
       }
   }  
+
 }
 
 
