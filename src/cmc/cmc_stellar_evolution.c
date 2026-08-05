@@ -322,8 +322,8 @@ void stellar_evolution_init(void){
       DMse -= star_m[g_k] * madhoc;
       /* birth kicks */
       if (kick_info[2][0] != 0.0) {
-        fprintf(stderr, "DEBUG 0: birth kick of %f km/s\n", kick_info[2][0]);
-        fflush(stderr);
+        //fprintf(stderr, "DEBUG 0: birth kick of %f km/s\n", kick_info[2][0]);
+        //fflush(stderr);
       }
       star[k].vr += kick_info[8][0] * 1.0e5 / (units.l/units.t);
 
@@ -375,17 +375,9 @@ void stellar_evolution_init(void){
               &(binary[kb].bse_tb), &(binary[kb].e), kick_info, &(binary[kb].bse_bhspin[0]));
       *curr_st=bse_get_taus113state();
 
-      if (binary[kb].bse_mass[0]>20. || binary[kb].bse_mass[1]>20.){
-          fprintf(stderr, "DEBUG 0 (binary): About to extract supernova kick physics from the array.\n");
-          fflush(stderr);
-      }
 
       handle_bse_outcome(k, kb, kick_info, tphysf, kprev0, kprev1, &VKO);
 
-      if (binary[kb].bse_mass[0]>20. || binary[kb].bse_mass[1]>20.){
-          fprintf(stderr, "DEBUG 0 (binary): Successfully processed kick physics without crashing.\n");
-          fflush(stderr);
-      }
 
     } else {
       eprintf("totally confused!\n");
@@ -410,7 +402,7 @@ void stellar_evolution_init(void){
 void do_stellar_evolution(gsl_rng *rng)
 {
   long k, kb, j, jj;
-  int kprev,i, ii;
+  int kprev,i, ii, kk;
   int kprev0, kprev1;
   double dtp, tphysf, kick_info[19][2], VKO;
   double M_beforeSE, M10_beforeSE, M100_beforeSE, M1000_beforeSE, Mcore_beforeSE;
@@ -426,15 +418,6 @@ void do_stellar_evolution(gsl_rng *rng)
 
   //MPI: The serial version runs till N_MAX_NEW+1 to account for the sentinel. But in the parallel version, there is no sentinel, so runs only till N_MAX_NEW.
   for(k=1; k<=clus.N_MAX_NEW; k++){ 
-    if (k == 7762) {
-        if (star[k].binind == 0) {
-            fprintf(stderr, "\n>>> Starting Star %ld (SINGLE) | Type: %d | Mass: %g\n", k, star[k].se_k, star[k].se_mt);
-        } else {
-            kb = star[k].binind;
-            fprintf(stderr, "\n>>> Starting Star %ld (BINARY) | Types: %d/%d | Masses: %g/%g\n", k, binary[kb].bse_kw[0], binary[kb].bse_kw[1], binary[kb].bse_mass[0], binary[kb].bse_mass[1]);
-        }
-        fflush(stderr);
-    }  
 
     int g_k = get_global_idx(k);
     if (star[k].binind == 0) { /* single star */
@@ -587,8 +570,8 @@ void do_stellar_evolution(gsl_rng *rng)
 
         /* birth kicks */
         if (kick_info[2][0] != 0.0) {
-          fprintf(stderr, "DEBUG 4: birth kick of %f km/s\n", kick_info[2][0]);
-          fflush(stderr);
+          //fprintf(stderr, "DEBUG 4: birth kick of %f km/s\n", kick_info[2][0]);
+          //fflush(stderr);
         }
         star[k].vr += kick_info[8][0] * 1.0e5 / (units.l/units.t);
 
@@ -628,6 +611,11 @@ void do_stellar_evolution(gsl_rng *rng)
     if (WRITE_MOREPULSAR_INFO) {
             if (kprev!=13 && star[k].se_k==13) { // newly formed NS
                     parafprintf(newnsfile, "%.18g %g 0 %ld %g %g %g %g %g %d", TotalTime, star_r[g_k], star[k].id,star[k].se_zams_mass,star[k].se_mass, star[k].se_mt, star[k].se_scm_formation, VKO, kprev);
+
+                    for (ii=0; ii<19; ii++){
+                        parafprintf (newnsfile, " %g", kick_info[ii][0]);
+                    }
+
                     parafprintf (newnsfile, "\n");
             }
     }
@@ -685,8 +673,8 @@ void do_stellar_evolution(gsl_rng *rng)
 		if(binary[kb].bse_kw[0] == 14 && binary[kb].bse_kw[1] == 14){
 			integrate_a_e_peters_eqn(kb);
                         for(ii=0;ii<19;ii++) {
-                            for(jj=0;jj<2;jj++){
-                                kick_info[ii][jj] = 0.0;
+                            for(kk=0;kk<2;kk++){
+                                kick_info[ii][kk] = 0.0;
                             }
                         }
 		} else{
@@ -734,14 +722,14 @@ void do_stellar_evolution(gsl_rng *rng)
 		if (kprev0!=14 && binary[kb].bse_kw[0]==14) { // newly formed BH
 			parafprintf(newbhfile, "%.18g %g 1 %ld %g %g %g %g %g", TotalTime, star_r[g_k], prev_id1, binary[kb].bse_zams_mass[0], binary[kb].bse_mass0[0], binary[kb].bse_mass[0], binary[kb].bse_bhspin[0], VKO);
 			for (ii=0; ii<19; ii++){
-				parafprintf (newbhfile, " %g", kick_info[ii][0]);
+			    parafprintf (newbhfile, " %g", kick_info[ii][0]);
 			}
 			parafprintf (newbhfile, "\n");
 		}
 		if (kprev1!=14 && binary[kb].bse_kw[1]==14 && binary[kb].id2 != 0) { // newly formed BH
 			parafprintf(newbhfile, "%.18g %g 1 %ld %g %g %g %g %g", TotalTime, star_r[g_k], prev_id2, binary[kb].bse_zams_mass[1],binary[kb].bse_mass0[1], binary[kb].bse_mass[1], binary[kb].bse_bhspin[1],VKO);
 			for (ii=0; ii<19; ii++){
-				parafprintf (newbhfile, " %g", kick_info[ii][1]);
+			    parafprintf (newbhfile, " %g", kick_info[ii][1]);
 			}
 			parafprintf (newbhfile, "\n");
 		}
@@ -750,10 +738,16 @@ void do_stellar_evolution(gsl_rng *rng)
         if (WRITE_MOREPULSAR_INFO) {
                 if (kprev0!=13 && binary[kb].bse_kw[0]==13) { // newly formed NS
                         parafprintf(newnsfile, "%.18g %g 1 %ld %g %g %g %g %g %d", TotalTime, star_r[g_k], prev_id1, binary[kb].bse_zams_mass[0], binary[kb].bse_mass0[0], binary[kb].bse_mass[0], binary[kb].bse_bcm_formation[0], VKO, kprev0);
+                        for (ii=0; ii<19; ii++){
+                            parafprintf (newnsfile, " %g", kick_info[ii][0]);
+                        }
                         parafprintf(newnsfile, "\n");
                 }
                 if (kprev1!=13 && binary[kb].bse_kw[1]==13 && binary[kb].id2 != 0) { // newly formed NS
                         parafprintf(newnsfile, "%.18g %g 1 %ld %g %g %g %g %g %d", TotalTime, star_r[g_k], prev_id2, binary[kb].bse_zams_mass[1],binary[kb].bse_mass0[1], binary[kb].bse_mass[1], binary[kb].bse_bcm_formation[1],VKO,kprev1);
+                        for (ii=0; ii<19; ii++){
+                            parafprintf (newnsfile, " %g", kick_info[ii][1]);
+                        }
                         parafprintf(newnsfile, "\n");
                 }
         }
@@ -882,8 +876,11 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
   int j, jj;
   long knew=0, knewp=0, convert;
   double dtp;
-
-  knew = 0;
+  double vko_sq = 0.0; //Track the square of the legacy quadrature sum
+  double knew_vtx = 0.0, knew_vty = 0.0, knew_vtz;
+  double knewp_vtx = 0.0, knewp_vty = 0.0, knewp_vtz;
+  
+  //knew = 0;
   *VKO = 0.0;
 
   /* PK: extract some stellar/binary info from BSE's bcm array */
@@ -974,21 +971,38 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
     DMse -= star_m[g_k] * madhoc;
     binary[kb].a = pow((binary[kb].bse_mass[0]+binary[kb].bse_mass[1])*sqr(binary[kb].bse_tb/365.25), 1.0/3.0)
       * AU / units.l;
+
     if (kick_info[2][0] != 0.0 || kick_info[2][1] != 0.0) {
       //dprintf("birth kick of %f and %f km/s\n", kick_info[2][0], kick_info[2][1]);
     }
+    
+    double total_vtx = 0.0, total_vty = 0.0, total_vtz = 0.0;
     for (int sn = 0; sn < 2; sn++) {
         /* kick_info[0][sn] is SN ID */
         if (kick_info[0][sn] > 0.0) { 
           /* Cols 6-8: shared COM kick */
+          /* Sum radial kicks directly */
           star[k].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-          vt_add_kick(&(star[k].vt), kick_info[6][sn], kick_info[7][sn], curr_st); //will mean a different angle for each kick, should be ok as this is a randomised process.
+    
+          /* Accumulate tangential and radial components */
+          total_vtx += kick_info[6][sn];
+          total_vty += kick_info[7][sn];
+          total_vtz += kick_info[8][sn];
+          //vt_add_kick(&(star[k].vt), kick_info[6][sn], kick_info[7][sn], curr_st); //legacy vs[20] prescription: will mean a different angle for each kick, should be ok as this is a randomised process.
                 
-          *VKO += sqrt(kick_info[6][sn]*kick_info[6][sn] + 
-                       kick_info[7][sn]*kick_info[7][sn] + 
-                       kick_info[8][sn]*kick_info[8][sn]);
+          //*VKO += sqrt(kick_info[6][sn]*kick_info[6][sn] + 
+          //             kick_info[7][sn]*kick_info[7][sn] + 
+          //             kick_info[8][sn]*kick_info[8][sn]);
         }
     }
+    
+    *VKO = sqrt(total_vtx*total_vtx + total_vty*total_vty + total_vtz*total_vtz);
+
+    /* Apply the random rotation to the true vector sum ONCE */
+    if (total_vtx != 0.0 || total_vty != 0.0) {
+        vt_add_kick(&(star[k].vt), total_vtx, total_vty, curr_st);
+    }
+
     set_star_EJ(k);
 
     if (kick_info[2][0] != 0.0) {
@@ -1035,7 +1049,6 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
 
     destroy_obj(k);
 
-    double vko_sq = 0.0; // Track the squares for the legacy quadrature sum
     for (int sn = 0; sn < 2; sn++) {
         if (kick_info[0][sn] > 0.0) {
                 
@@ -1043,33 +1056,62 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
             if (kick_info[1][sn] == 0.0) {
             /* System survived THIS kick, both stars get the COM velocity (Cols 6-8) */
                 star[knew].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-                vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
+                knew_vtx += kick_info[6][sn];
+                knew_vty += kick_info[7][sn];
+                //vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
                     
                 star[knewp].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-                star[knewp].vt = star[knew].vt; // Tangent speeds sync when sharing COM
+                knewp_vtx += kick_info[6][sn];
+                knewp_vty += kick_info[7][sn];
+                //star[knewp].vt = star[knew].vt; // Tangent speeds sync when sharing COM
                     
+                vko_sq += (kick_info[6][sn]*kick_info[6][sn] +
+                           kick_info[7][sn]*kick_info[7][sn] +
+                           kick_info[8][sn]*kick_info[8][sn]);
             } else {
                 /* System disrupted by THIS kick. Apply runaway vectors by Star ID */
                     
                 /* Star 1 (knew) always gets Cols 6-8 */
                 star[knew].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-                vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
+                knew_vtx += kick_info[6][sn];
+                knew_vty += kick_info[7][sn];
+                //vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
                     
                 /* Star 2 (knewp) always gets Cols 10-12 */
                 star[knewp].vr += kick_info[12][sn] * 1.0e5 / (units.l/units.t);
-                vt_add_kick(&(star[knewp].vt), kick_info[10][sn], kick_info[11][sn], curr_st);
+                knewp_vtx += kick_info[10][sn];
+                knewp_vty += kick_info[11][sn];
+                //vt_add_kick(&(star[knewp].vt), kick_info[10][sn], kick_info[11][sn], curr_st);
+                
+                /* Log the correct star's runaway magnitude */
+                if (sn == 0) {
+                    vko_sq += (kick_info[6][sn]*kick_info[6][sn] +
+                               kick_info[7][sn]*kick_info[7][sn] +
+                               kick_info[8][sn]*kick_info[8][sn]);
+                } else {
+                    vko_sq += (kick_info[10][sn]*kick_info[10][sn] +
+                               kick_info[11][sn]*kick_info[11][sn] +
+                               kick_info[12][sn]*kick_info[12][sn]);
+                }
             }        
             
             // Legacy Disrupted Math: Only track Star 1's columns (6-8) as a sum of squares
-            vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
-                       kick_info[7][sn]*kick_info[7][sn] + 
-                       kick_info[8][sn]*kick_info[8][sn]); 
+            //vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
+            //           kick_info[7][sn]*kick_info[7][sn] + 
+            //           kick_info[8][sn]*kick_info[8][sn]); 
             
         }
     }
     // Finalize the legacy VKO calculation outside the loop
     *VKO = sqrt(vko_sq);    
-    
+    /* Apply vectors outside the loop */
+    if (knew_vtx != 0.0 || knew_vty != 0.0) {
+        vt_add_kick(&(star[knew].vt), knew_vtx, knew_vty, curr_st);
+    }
+    if (knewp_vtx != 0.0 || knewp_vty != 0.0) {
+        vt_add_kick(&(star[knewp].vt), knewp_vtx, knewp_vty, curr_st);
+    }    
+
     set_star_EJ(knew);
     set_star_EJ(knewp);    
 
@@ -1106,15 +1148,27 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
     
     for (int sn = 0; sn < 2; sn++) {
         if (kick_info[0][sn] > 0.0) {
-            /* Surviving star acts as the COM, gets Cols 6-8 */
+            /* Whether the system merged (COM kick) or disrupted (Runaway kick), 
+               kick.f strictly routes Star 1's velocity to Cols 6-8. */
             star[knew].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-            vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
+            knew_vtx += kick_info[6][sn];
+            knew_vty += kick_info[7][sn];
+            knew_vtz += kick_info[8][sn];
+            //vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
                 
-            *VKO += sqrt(kick_info[6][sn]*kick_info[6][sn] + 
-                         kick_info[7][sn]*kick_info[7][sn] + 
-                         kick_info[8][sn]*kick_info[8][sn]);
+            //vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
+            //           kick_info[7][sn]*kick_info[7][sn] + 
+            //           kick_info[8][sn]*kick_info[8][sn]);
+
         }
     }
+    //*VKO = sqrt(vko_sq);
+    *VKO = sqrt(knew_vtx*knew_vtx + knew_vty*knew_vty + knew_vtz*knew_vtz);
+
+    if (knew_vtx != 0.0 || knew_vty != 0.0) {
+        vt_add_kick(&(star[knew].vt), knew_vtx, knew_vty, curr_st);
+    }    
+
     set_star_EJ(knew);
 
     if (kick_info[2][0] != 0.0) {
@@ -1163,8 +1217,6 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
         }
     }
 
-    double vko_sq = 0.0; // Track squares for legacy quadrature sum
-
     for (int sn = 0; sn < 2; sn++) {
         if (kick_info[0][sn] > 0.0) {
             
@@ -1173,27 +1225,59 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
                 /* System merged or survived THIS kick. 
  *                    Surviving Star 2 acts as COM, gets Cols 6-8 */
                 star[knew].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
-                vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
+                knew_vtx += kick_info[6][sn];
+                knew_vty += kick_info[7][sn];
+                knew_vtz += kick_info[8][sn];
+                //vt_add_kick(&(star[knew].vt), kick_info[6][sn], kick_info[7][sn], curr_st);
                 
-                vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
-                           kick_info[7][sn]*kick_info[7][sn] + 
-                           kick_info[8][sn]*kick_info[8][sn]);
+                //vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
+                //           kick_info[7][sn]*kick_info[7][sn] + 
+                //           kick_info[8][sn]*kick_info[8][sn]);
                            
             } else {
                 /* System disrupted by THIS kick, and then Star 1 vanished.
  *                    Surviving Star 2 gets its specific runaway vectors from Cols 10-12 */
-                star[knew].vr += kick_info[12][sn] * 1.0e5 / (units.l/units.t);
-                vt_add_kick(&(star[knew].vt), kick_info[10][sn], kick_info[11][sn], curr_st);
+                /* Check for Collision Override */
+                if (kick_info[10][sn] == 0.0 && kick_info[11][sn] == 0.0 && kick_info[12][sn] == 0.0) {
+                    /* Collision occurred! BSE dumped Star 2's velocity into Cols 6-8 */
+                    star[knew].vr += kick_info[8][sn] * 1.0e5 / (units.l/units.t);
+                    knew_vtx += kick_info[6][sn];
+                    knew_vty += kick_info[7][sn];
+                    knew_vtz += kick_info[8][sn];
+
+                    //vko_sq += (kick_info[6][sn]*kick_info[6][sn] + 
+                    //           kick_info[7][sn]*kick_info[7][sn] + 
+                    //           kick_info[8][sn]*kick_info[8][sn]);
+                } else {
+                    /* True disruption without collision. Surviving Star 2 gets Cols 10-12 */
+                    star[knew].vr += kick_info[12][sn] * 1.0e5 / (units.l/units.t);
+                    knew_vtx += kick_info[10][sn];
+                    knew_vty += kick_info[11][sn];
+                    knew_vtz += kick_info[12][sn];
+
+                    //vko_sq += (kick_info[10][sn]*kick_info[10][sn] + 
+                    //           kick_info[11][sn]*kick_info[11][sn] + 
+                    //           kick_info[12][sn]*kick_info[12][sn]);
+                }
+
+                //star[knew].vr += kick_info[12][sn] * 1.0e5 / (units.l/units.t);
+                //vt_add_kick(&(star[knew].vt), kick_info[10][sn], kick_info[11][sn], curr_st);
                 
-                vko_sq += (kick_info[10][sn]*kick_info[10][sn] + 
-                           kick_info[11][sn]*kick_info[11][sn] + 
-                           kick_info[12][sn]*kick_info[12][sn]);
+                //vko_sq += (kick_info[10][sn]*kick_info[10][sn] + 
+                //           kick_info[11][sn]*kick_info[11][sn] + 
+                //           kick_info[12][sn]*kick_info[12][sn]);
             }
         }
     }
     
     // Finalize legacy VKO calculation
-    *VKO = sqrt(vko_sq);         
+    //*VKO = sqrt(vko_sq);
+    *VKO = sqrt(knew_vtx*knew_vtx + knew_vty*knew_vty + knew_vtz*knew_vtz);
+
+    if (knew_vtx != 0.0 || knew_vty != 0.0) {
+        vt_add_kick(&(star[knew].vt), knew_vtx, knew_vty, curr_st);
+    }
+         
     set_star_EJ(knew);
 
     for (int sn = 0; sn < 2; sn++) {
