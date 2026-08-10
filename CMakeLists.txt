@@ -17,6 +17,15 @@ endforeach()
 
 project(CMC VERSION 1.0.0 LANGUAGES C Fortran)
 
+# CMC's C sources predate C23 and rely on pre-C23 semantics — notably empty
+# parameter lists () meaning "unspecified args" rather than (void). GCC 15
+# defaults to C23 (gnu23), which turns those long-standing idioms into hard
+# errors (e.g. conflicting decls of inv_comm_create); GCC 14 defaulted to gnu17.
+# Pin gnu17 so a compiler default-standard bump doesn't break the build.
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
 # On macOS, force Xcode's ar/ranlib (BSD-format archives) over any Homebrew
 # binutils GNU ar that may be earlier in PATH. Apple's ld rejects SysV-format
 # archives with "archive member '/' not a mach-o file".
