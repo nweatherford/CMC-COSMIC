@@ -1112,7 +1112,7 @@ void handle_bse_outcome(long k, long kb, double kick_info[19][2], double tphysf,
     }
     if (kick_info[2][1] != 0.0) {
       //dprintf("birth kick of %f km/s\n", kick_info[2][0]);
-      dprintf("birth kick(bin2iso2): TT=%.18g, kick_info[0][1]=%.18g, kick_info[6][1]=%.18g, kick_info[7][1]=%.18g, kick_info[8][1]=%.18g, vr=%.18g, vt=%.18g, VK=%.18g id1=%ld id2=%ld pid1=%ld pid2=%ld type1=%d type2=%d\n",TotalTime,kick_info[0][1],kick_info[6][1],kick_info[7][1],kick_info[8][1],star[k].vr,star[k].vt,VKO,star[knew].id,star[knew].id,binary[kb].id1,binary[kb].id2,star[knew].se_k,star[knewp].se_k);
+      dprintf("birth kick(bin2iso2): TT=%.18g, kick_info[0][1]=%.18g, kick_info[6][1]=%.18g, kick_info[7][1]=%.18g, kick_info[8][1]=%.18g, vr=%.18g, vt=%.18g, VK=%.18g id1=%ld id2=%ld pid1=%ld pid2=%ld type1=%d type2=%d\n",TotalTime,kick_info[0][1],kick_info[6][1],kick_info[7][1],kick_info[8][1],star[k].vr,star[k].vt,VKO[1],star[knew].id,star[knew].id,binary[kb].id1,binary[kb].id2,star[knew].se_k,star[knewp].se_k);
     }
 
   } else if (binary[kb].bse_mass[0] != 0.0 && binary[kb].bse_mass[1] == 0.0) {
