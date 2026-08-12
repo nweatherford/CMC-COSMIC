@@ -250,7 +250,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
                         /* mark stars as interacted so they don't undergo E_CONS mode stuff */
                         //star[knew].id = star_get_id_new();
 
-                        star[knew].id = star_get_merger_id_new(star[k].id, star[kp].id);
+                        star[knew].id = star_get_merger_id_new();
                         star[knew].interacted = 1;
 
                         star[knew].Eint = star[k].Eint + star[kp].Eint
@@ -461,7 +461,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
                         /* mark stars as interacted so they don't undergo E_CONS mode stuff */
                         //star[knew].id = star_get_id_new();
 
-                        star[knew].id = star_get_merger_id_new(star[k].id, star[kp].id);
+                        star[knew].id = star_get_merger_id_new();
                         star[knew].interacted = 1;
 
                         star[knew].Eint = star[k].Eint + star[kp].Eint
@@ -647,7 +647,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
                         /* mark stars as interacted so they don't undergo E_CONS mode stuff */
                         //star[knew].id = star_get_id_new();
 
-                        star[knew].id = star_get_merger_id_new(star[k].id, star[kp].id);
+                        star[knew].id = star_get_merger_id_new();
                         star[knew].interacted = 1;
 
                         star[knew].Eint = star[k].Eint + star[kp].Eint
@@ -875,7 +875,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
 
                 /* mark stars as interacted so they don't undergo E_CONS mode stuff */
                 //star[knew].id = star_get_id_new();
-                star[knew].id = star_get_merger_id_new(star[k].id, star[kp].id);
+                star[knew].id = star_get_merger_id_new();
                 star[knew].interacted = 1;
                 
                 star[knew].Eint = star[k].Eint + star[kp].Eint
@@ -1009,7 +1009,7 @@ void sscollision_do(long k, long kp, double rperimax, double w[4], double W, dou
                                 /* mark stars as interacted so they don't undergo E_CONS mode stuff */
                                 //star[knew].id = star_get_id_new();
 
-                                star[knew].id = star_get_merger_id_new(star[k].id, star[kp].id);
+                                star[knew].id = star_get_merger_id_new();
                                 star[knew].interacted = 1;
 
                                 star[knew].Eint = star[k].Eint + star[kp].Eint
