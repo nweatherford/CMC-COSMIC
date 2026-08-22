@@ -87,8 +87,7 @@ all useful for establishing a general idea of how the cluster evolves.
 4       ``M``           Total mass (in units of initial mass)
 5       ``VR``          Measures how far away the cluster is from virial equilibrium (-2.0*Etotal.K/Etotal.P)
 6       ``N_c``         Total number of stars within the core radius ``r_c``: :math:`\frac{4 \pi}{3} r_c^3  \frac{n_{\rm c}}{2}`
-7       ``r_c``         Theoretical, mass-density-weighted core radius from Eq. II.4 of
-                                `Casertano & Hut (1985) <https://ui.adsabs.harvard.edu/abs/1985ApJ...298...80C/abstract>`_
+7       ``r_c``         Theoretical, mass-density-weighted core radius from Eq. II.4 of `Casertano & Hut (1985) <https://ui.adsabs.harvard.edu/abs/1985ApJ...298...80C/abstract>`_
 8       ``r_max``       Maximum clustercentric radial position of any star in the cluster
 9       ``Etot``        Total energy 
 10      ``KE``          Total kinetic energy 
@@ -102,16 +101,13 @@ all useful for establishing a general idea of how the cluster evolves.
 18      ``Eoops``       Energy lost due to the `Stodółkiewicz (1982) <https://ui.adsabs.harvard.edu/abs/1982AcA....32...63S/abstract>`_ potential correction step
 19      ``Etot+Eoops``  ``Etot`` + ``Eoops``
 20      ``r_h``         Half-mass radius
-21      ``rho_0``       Central density (mass-density-weighted density) from Eq. II.5 of
-                                `Casertano & Hut (1985) <https://ui.adsabs.harvard.edu/abs/1985ApJ...298...80C/abstract>`_
-22      ``rc_spitzer``  Core radius from `Spitzer (1987) <https://ui.adsabs.harvard.edu/abs/1987degc.book.....S/abstract>`_:
-                                :math:`\sqrt{3  \sigma_0^2}{4 \pi \rho_0}`
+21      ``rho_0``       Central density (mass-density-weighted density) from Eq. II.5 of `Casertano & Hut (1985) <https://ui.adsabs.harvard.edu/abs/1985ApJ...298...80C/abstract>`_
+22      ``rc_spitzer``  Core radius from `Spitzer (1987) <https://ui.adsabs.harvard.edu/abs/1987degc.book.....S/abstract>`_, :math:`\sqrt{3  \sigma_0^2}{4 \pi \rho_0}`
 23      ``v0_rms``      RMS density-weighted velocity dispersion at the cluster center
-24      ``rc_nb``       Theoretical (mass-density-squared)-weighted core radius used in NBODY6, originating in Eq. 5 of
-25                              `McMillan, Hut & Makino (1990) <https://ui.adsabs.harvard.edu/abs/1990ApJ...362..522M/abstract>`_ 
-26      ``DMse``        Total mass loss from the cluster per time step due to stellar evolution [:math:`M_{\odot}`]
-27      ``DMrejuv``     Mass loss from rejuvenation per time step [:math:`M_{\odot}`]
-28      ``N_c_nb``      Number of stars within the core radius ``rc_nb``: :math:`\frac{4 \pi}{3} rc_{\rm nb}^3  \frac{n_{\rm c}}{2}`
+24      ``rc_nb``       Theoretical (mass-density-squared)-weighted core radius used in NBODY6, originating in Eq. 5 of `McMillan, Hut & Makino (1990) <https://ui.adsabs.harvard.edu/abs/1990ApJ...362..522M/abstract>`_ 
+25      ``DMse``        Total mass loss from the cluster per time step due to stellar evolution [:math:`M_{\odot}`]
+26      ``DMrejuv``     Mass loss from rejuvenation per time step [:math:`M_{\odot}`]
+27      ``N_c_nb``      Number of stars within the core radius ``rc_nb``: :math:`\frac{4 \pi}{3} rc_{\rm nb}^3  \frac{n_{\rm c}}{2}`
 ======  ==============  =====================================================
 
 initial.binint.log
@@ -219,7 +215,7 @@ must be analyzed separately by computing the inspiral times of all BH-BH binarie
 ======  ======================  =====================================================
 0       ``tcount``              Time step count
 1       ``Totaltime``           Time
-2       ``Nbh,tot``             Total number of BHs (``Nbh,single`` + ``Nbh-nonbh`` + 2``Nbh-bh``)
+2       ``Nbh,tot``             Total number of BHs (``Nbh,single`` + ``Nbh-nonbh`` + 2 * ``Nbh-bh``)
 3       ``Nbh,single``          Number of single BHs
 4       ``Nbinarybh``           Number of binary BHs (``Nbh-nonbh`` + ``Nbh-bh``)
 5       ``Nbh-bh``              Number of BH-BH binaries
@@ -377,9 +373,7 @@ ejecta in post-processing using the COSMIC stellar evolution code. (Prior to mid
 8       ``Rtidal``              Tidal radius, :math:`r_t`
 9       ``phi_rtidal``          Potential at the tidal radius, :math:`\phi(r_t)`
 10      ``phi_zero``            Potential at cluster center
-11      ``E``                   Energy of star's orbit in the cluster, :math:`E=\frac{v_r^2 + v_t^2}{2} + \phi(r)`. Note this includes the star's own contribution to
-                                        :math:`\phi(r)`---i.e., :math:`-Gm/r`---but this self-contribution is explicitly excluded in the criterion for escape:
-                                        ``E`` + G ``m`` / ``r`` > ``Ecrit``, where ``Ecrit`` also excludes the self-contribution (see below).
+11      ``E``                   Energy of star's orbit in the cluster, :math:`E=\frac{v_r^2 + v_t^2}{2} + \phi(r)`. Note this includes the star's own contribution to :math:`\phi(r)`---i.e., :math:`-Gm/r`---but this self-contribution is explicitly excluded in the criterion for escape: ``E`` + G ``m`` / ``r`` > ``Ecrit``, where ``Ecrit`` also excludes the self-contribution (see below).
 12      ``J``                   Angular momentum of system's orbit in the cluster, :math:`J = r v_t`
 13      ``id``                  ID of both singles and binary primaries
 14      ``binflag``             Binary flag. ``binflag`` = 1 if the system is a binary; else `-100`
@@ -399,7 +393,7 @@ ejecta in post-processing using the COSMIC stellar evolution code. (Prior to mid
 37      ``tms0``                Main-sequence timescale [Myr] of primaries/singles
 39      ``dmdt0``               Binary primary star's mass rate of change [:math:`M_{\odot}\,{\rm yr}^{-1}`];`-100` if single
 41      ``radrol0``             Ratio of primary star's radius to its enclosing Roche lobe if a binary, else `-100`
-43      ``ospin0``              Spin angular momentum [:math:`M_{\odot}\,R_{\odot}^2,{\rm yr}^{-1}`] of primaries/singles
+43      ``ospin0``              Spin angular momentum [:math:`M_{\odot}\,R_{\odot}^2\,{\rm yr}^{-1}`] of primaries/singles
 45      ``B0``                  Star magnetic field strength [G] of both binary primaries and singles
 47      ``formation0``          Supernova remnant formation channel (e.g., core collapse, pair instability, etc.) of primaries/singles
 49      ``bacc0``               Total previously accreted mass [:math:`M_{\odot}`] for primaries/singles
@@ -408,14 +402,10 @@ ejecta in post-processing using the COSMIC stellar evolution code. (Prior to mid
 55      ``epoch0``              COSMIC parameter establishing a time offset for restarting stellar evolution [:math:`M_{\odot}`]
 57      ``bhspin``              Single BH spin; `-100` if binary or non-BH
 58      ``bhspin0``             Binary primary BH spin;`-100` if single or non-BH
-60      ``ospin``               Single star spin angular momentum [:math:`M_{\odot}\,R_{\odot}^2,{\rm yr}^{-1}`]; `-100` if binary
+60      ``ospin``               Single star spin angular momentum [:math:`M_{\odot}\,R_{\odot}^2\,{\rm yr}^{-1}`]; `-100` if binary
 61      ``B``                   Star magnetic field strength [G] if a single; else `-100`
 62      ``formation``           Single supernova remnant formation channel (e.g., core collapse, pair instability, etc.); `-100` if binary
-63      ``Ecrit``               Critical energy required to escape, excluding the system's own contribution to :math:`\phi(r_t)`, i.e., :math:`-Gm/r_t`.
-                                By default, :math:`E_{\rm crit} = \alpha \phi(r_t) + Gm/r_t` where :math:`\alpha = 1.5 - 3 \left(\frac{\ln\Lambda}{N}\right)^{1/4}`
-                                (`Giersz et al. 2008 <https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..429G/abstract>`_).
-                                Here, :math:`\ln\Lambda = \gamma N` is the Coulomb logarithm, and CMC's default :math:`\gamma=0.01` is appropriate for realistic stellar initial mass functions (`Freitag et al. 2006 <https://ui.adsabs.harvard.edu/abs/2006MNRAS.368..121F/abstract>`_,
-                                `Rodriguez et al. 2018 <https://ui.adsabs.harvard.edu/abs/2018ComAC...5....5R/abstract>`_).
+63      ``Ecrit``               Critical energy required to escape, excluding the system's own contribution to :math:`\phi(r_t)`, i.e., :math:`-Gm/r_t`. By default, :math:`E_{\rm crit} = \alpha \phi(r_t) + Gm/r_t` where :math:`\alpha = 1.5 - 3 \left(\frac{\ln\Lambda}{N}\right)^{1/4}` (`Giersz et al. 2008 <https://ui.adsabs.harvard.edu/abs/2008MNRAS.388..429G/abstract>`_). Here, :math:`\ln\Lambda = \gamma N` is the Coulomb logarithm, and CMC's default :math:`\gamma=0.01` is appropriate for realistic stellar initial mass functions (`Freitag et al. 2006 <https://ui.adsabs.harvard.edu/abs/2006MNRAS.368..121F/abstract>`_, `Rodriguez et al. 2018 <https://ui.adsabs.harvard.edu/abs/2018ComAC...5....5R/abstract>`_).
 ======  ======================  =====================================================
 
 
