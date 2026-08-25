@@ -80,7 +80,7 @@ CHECKPOINT_INTERVAL   7200
 # how many checkpoints to keep
 CHECKPOINTS_TO_KEEP   2
 # energy change calculation stopping criterion
-TERMINAL_ENERGY_DISPLACEMENT   10
+TERMINAL_ENERGY_DISPLACEMENT   10000
 # stop calculation at core collapse (0=no, 1=yes)
 STOPATCORECOLLAPSE   0
 # Dynamical Friction cutoff
